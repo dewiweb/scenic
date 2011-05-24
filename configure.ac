@@ -171,6 +171,8 @@ AS_IF([test "x${HAVE_PYMOD_JSON}" = "xno"],
     AS_IF([test "x${HAVE_PYMOD_SIMPLEJSON}" = "xno"],
         [AC_MSG_ERROR([The Scenic graphical user interface requires one of json or simplejson])]))
 
+AC_SUBST([PYTHON_LIB_PATH], ["${prefix}${pythondir}]")
+
 # check for programs
 # TODO: move those checks for programs up. (it should always be second in the configure.ac file)
 # FIXME: some checks should be done at runtime, not build time
