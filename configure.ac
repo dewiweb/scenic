@@ -200,13 +200,7 @@ AS_IF([test "x${HAVE_PYMOD_JSON}" = "xno"],
     AS_IF([test "x${HAVE_PYMOD_SIMPLEJSON}" = "xno"],
         [AC_MSG_ERROR([The Scenic graphical user interface requires one of json or simplejson])]))
 
-AC_SUBST([PREFIX])
-if test $prefix == 'NONE' ; then
-    PREFIX=/usr/local;
-else
-    PREFIX=$prefix;
-fi
-AC_SUBST([PYTHON_LIB_PATH], ["${PREFIX}/${pythondir}]")
+AS_AC_EXPAND(PYTHON_LIB_PATH, "${pythondir}")
 
 # check for programs
 # TODO: move those checks for programs up. (it should always be second in the configure.ac file)
