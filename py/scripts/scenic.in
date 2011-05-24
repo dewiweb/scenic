@@ -34,7 +34,8 @@ def _is_in_devel():
     return d == SCRIPTS_DIR
 
 def _add_install_path_to_pythonpath():
-    path = PYTHON_LIB_PATH
+    # FIXME: removing the "${prefix}" string should be removed within the autotools
+    path = PYTHON_LIB_PATH.replace("${prefix}/", "")
     os.environ["PATH"] += ":%s" % (path)
 
 if __name__ == "__main__":
