@@ -21,7 +21,7 @@
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 
-#include "./osgView.h"
+#include "./osgview.h"
 #include "sharedVideoBuffer.h"
 
 static const GLenum PIXEL_TYPE = GL_UNSIGNED_SHORT_5_6_5;
@@ -93,8 +93,9 @@ void SharedVideoPlayer::consumeFrame(SharedVideoBuffer *sharedBuffer)
     // make sure there's no sentinel
     {
         // Lock the mutex
-        scoped_lock<interprocess_mutex> lock(sharedBuffer->getMutex());
-        sharedBuffer->startPushing();   // tell appsink to give us buffers
+        //scoped_lock<interprocess_mutex> lock(sharedBuffer->getMutex());
+        //sharedBuffer->startPushing();   // tell appsink to give us buffers
+        boost::mutex::scoped_lock displayLock(displayMutex_);
     }
 
 
