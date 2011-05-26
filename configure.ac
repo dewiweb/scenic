@@ -3,7 +3,7 @@
 
 AC_PREREQ(2.60)
 # version should always be .1 greater than last tag, unless this is a tag
-AC_INIT(SCENIC, [0.6.8], [http://code.sat.qc.ca/trac/scenic/wiki/BugReport], [scenic], [http://code.sat.qc.ca/trac/scenic])
+AC_INIT(SCENIC, [0.6.9], [http://code.sat.qc.ca/trac/scenic/wiki/BugReport], [scenic], [http://code.sat.qc.ca/trac/scenic])
 AC_CONFIG_HEADER([src/config.h])
 AC_CONFIG_SRCDIR([src/main/milhouse.cpp])
 AC_CONFIG_MACRO_DIR([m4])
@@ -199,6 +199,8 @@ AX_PYTHON_MODULE([simplejson], [])
 AS_IF([test "x${HAVE_PYMOD_JSON}" = "xno"], 
     AS_IF([test "x${HAVE_PYMOD_SIMPLEJSON}" = "xno"],
         [AC_MSG_ERROR([The Scenic graphical user interface requires one of json or simplejson])]))
+
+AS_AC_EXPAND(PYTHON_LIB_PATH, "${pythondir}")
 
 # check for programs
 # TODO: move those checks for programs up. (it should always be second in the configure.ac file)

@@ -31,8 +31,11 @@ PYTHON_LIB_PATH = """@PYTHON_LIB_PATH@"""
 
 def _is_in_devel():
     d = os.path.split(os.path.dirname(os.path.abspath(__file__)))[1]
-    #print d
     return d == SCRIPTS_DIR
+
+def _add_install_path_to_pythonpath():
+    path = PYTHON_LIB_PATH
+    os.environ["PATH"] += ":%s" % (path)
 
 if __name__ == "__main__":
     if _is_in_devel():
@@ -50,6 +53,7 @@ if __name__ == "__main__":
         from scenic import configure
         configure.replace_install_paths_with_devel_paths()
     else:
+        _add_install_path_to_pythonpath()
         from scenic import configure
 
     from scenic import runner
