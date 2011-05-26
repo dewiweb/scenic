@@ -1,5 +1,6 @@
 DEPS=clutter-1.0 shared-video-0.6 gstreamer-0.10 gstreamer-app-0.10 openscenegraph
-CXXFLAGS=`pkg-config --cflags $(DEPS)` -Wall -Werror -Wfatal-errors -Wextra -O2
+CXXFLAGS=`pkg-config --cflags $(DEPS)` -Wall -Werror -O2
+# -Wfatal-errors -Wextra 
 LIBS=`pkg-config --libs $(DEPS)` -lboost_thread -lrt 
 OBJS=osgview.o
 
