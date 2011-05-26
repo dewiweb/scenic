@@ -1,0 +1,3 @@
+#!/usr/bin/env lunch
+add_command("milhouse -s --videosource videotestsrc --width 320 --height 240 --address localhost --videoport 10000")
+add_command("milhouse -r --videosink sharedvideosink --videoport 10000 --address localhost --shared-video-id sharedvideoexample")
