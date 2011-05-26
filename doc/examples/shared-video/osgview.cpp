@@ -106,10 +106,13 @@ void SharedVideoPlayer::consumeFrame(SharedVideoBuffer *sharedBuffer)
             scoped_lock<interprocess_mutex> lock(sharedBuffer->getMutex());
 
             // wait for new buffer to be pushed if it's empty
-            sharedBuffer->waitOnProducer(lock);
+            //sharedBuffer->waitOnProducer(lock);
 
-            if (!sharedBuffer->isPushing())
+            //if (!sharedBuffer->isPushing())
+            if (not sharedBuffer->waitOnProducer(lock)) 
+            {
                 end_loop = true;
+            }
             else
             {
                 // got a new buffer, wait until we upload it in gl thread before notifying producer
@@ -118,7 +121,7 @@ void SharedVideoPlayer::consumeFrame(SharedVideoBuffer *sharedBuffer)
 
                     if (killed_)
                     {
-                        sharedBuffer->stopPushing();   // tell appsink not to give us any more buffers
+                        //sharedBuffer->stopPushing();   // tell appsink not to give us any more buffers
                         end_loop = true;
                     }
                     else
