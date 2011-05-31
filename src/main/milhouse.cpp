@@ -213,7 +213,17 @@ short Milhouse::run(int argc, char **argv)
         setenv("GST_DEBUG_DUMP_DOT_DIR", ".", 0 /* don't override current value if present*/);
 
     // wrapper so main doesn't need to know about gst and gtk
-    gutil::init_gst_gtk(argc, argv);
+    /*
+    if (!options["localvideo"].as<bool>() && 
+            !options.count("vumeter-id") && 
+            !(options.count("receiver") && options.count("videoport"))) {
+        gutil::init_gst_gtk(argc, argv, true);
+    } else {
+        gutil::init_gst_gtk(argc, argv, false);
+    }
+    */
+    LOG_PRINT("milhouse version " << PACKAGE_VERSION << std::endl);
+    gutil::init_gst_gtk(argc, argv, true);
     if (options["gst-version"].as<bool>())
     {
         // this was handled internally by gst_init's argv parsing

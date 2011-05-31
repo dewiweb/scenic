@@ -70,10 +70,10 @@ void gutil::runMainLoop(int ms)
     gtk_main();
 }
 
-void gutil::init_gst_gtk(int argc, char **argv)
+void gutil::init_gst_gtk(int argc, char **argv, bool with_gtk)
 {
     gst_init(&argc, &argv);
-    if (getenv("DISPLAY") != NULL)
+    if (getenv("DISPLAY") != NULL && with_gtk)
         gtk_init(&argc, &argv);
     else
         LOG_DEBUG("DISPLAY variable has not been set");
