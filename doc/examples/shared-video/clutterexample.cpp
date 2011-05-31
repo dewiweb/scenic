@@ -10,6 +10,9 @@
 
 #include "sharedVideoBuffer.h"
 
+#include <boost/thread/thread.hpp>
+#include <boost/thread/condition.hpp>
+
 #define UNUSED(x) ((void) (x))
 
 /// FUCKING GROSS!!!
@@ -35,13 +38,12 @@ static void key_event_cb(ClutterActor *actor, ClutterKeyEvent *event, gpointer d
 static void on_frame_cb(ClutterTimeline *timeline, guint *ms, gpointer data)
 {
     //ClutterTexture *texture = CLUTTER_TEXTURE(data);
-    clutter_texture_set_from_rgb_data(CLUTTER_TEXTURE(data),sharedBuffer->pixelsAddress(),false,640,480,640*3,3,CLUTTER_TEXTURE_NONE,NULL);
+    clutter_texture_set_from_rgb_data(CLUTTER_TEXTURE(data),sharedBuffer->pixelsAddress(),true,GLOBAL_width,GLOBAL_height,GLOBAL_width*4,4,CLUTTER_TEXTURE_NONE,NULL);
     //UNUSED(texture);
     UNUSED(timeline);
     UNUSED(ms);
     //g_print("on_frame_cb\n");
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -90,14 +92,16 @@ int main(int argc, char *argv[])
 
             // start our consumer thread, which is a member function of our player object and
             // takes sharedBuffer as an argument
+            /*
             boost::thread worker(boost::bind<void>(boost::mem_fn(&SharedVideoPlayer::consumeFrame), 
                         boost::ref(player), 
                         sharedBuffer));
+            */
 
             //player.run();
 
             //player.signalKilled(); // let worker know that the mainloop has exitted
-            worker.join(); // wait for worker to end out before main thread does
+            //worker.join(); // wait for worker to end out before main thread does
             std::cout << "Main thread going out\n";
         }
         catch(interprocess_exception &ex)
@@ -128,14 +132,14 @@ int main(int argc, char *argv[])
 
     /* Get the stage and set its size and color: */
     stage = clutter_stage_get_default();
-    clutter_actor_set_size(stage, 800, 600);
+    clutter_actor_set_size(stage, 640, 480);
     clutter_stage_set_color(CLUTTER_STAGE(stage),&blue); 
 
     // Create and add texture actor
     texture = clutter_texture_new();
     //clutter_texture_set_from_rgb_data(CLUTTER_TEXTURE(texture),sharedBuffer->pixelsAddress(),false,640,480,640*3,3,CLUTTER_TEXTURE_NONE,NULL);
     //texture = clutter_rectangle_new_with_color(&white);
-    //clutter_actor_set_size(texture, 400, 300);
+    clutter_actor_set_size(texture, GLOBAL_width, GLOBAL_height);
     clutter_container_add_actor(CLUTTER_CONTAINER(stage), texture);
 
     // timeline to attach a callback for each frame that is rendered
