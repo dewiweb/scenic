@@ -26,7 +26,7 @@
 
 static const GLenum PIXEL_TYPE = GL_UNSIGNED_SHORT_5_6_5;
 
-/// FUCKING GROSS!!!
+/// GROSS!!!
 static int GLOBAL_width = 0;
 static int GLOBAL_height = 0;
 
