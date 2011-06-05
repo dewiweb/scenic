@@ -52,6 +52,27 @@ HISTORY
     * 2009-05-08: 0.1.2-rc1
     * 2009-02-10: 0.1.2-a1
 
+
+----------------------------------------------------------------------
+Release notes for Scenic 0.7.2
+
+This release is in unstable 0.7 branch.
+
+Since this is an unstable branch, there is no guarantee that versions will
+be interoperable (although we will try to make it so).
+
+New features in milhouse:
+    * (none)
+
+New features in scenic:
+    * (none)
+
+Bug fixes in milhouse: 
+    * (none)
+
+Bug fixes in scenic:
+    * First attempt to fix "scenic module not found" error in runner.
+
 ----------------------------------------------------------------------
 
 Release notes for Scenic 0.7.0
