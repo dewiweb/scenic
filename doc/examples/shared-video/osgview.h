@@ -20,7 +20,7 @@ class SharedVideoPlayer
         void signalKilled();
         void init(unsigned char *pixelData);
         void run();
-        void consumeFrame(SharedVideoBuffer *sharedBuffer);
+        //void consumeFrame(SharedVideoBuffer *sharedBuffer);
 };
 
 

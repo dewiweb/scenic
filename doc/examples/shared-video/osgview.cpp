@@ -24,7 +24,8 @@
 #include "./osgview.h"
 #include "sharedVideoBuffer.h"
 
-static const GLenum PIXEL_TYPE = GL_UNSIGNED_SHORT_5_6_5;
+//static const GLenum PIXEL_TYPE = GL_UNSIGNED_SHORT_5_6_5;
+static const GLenum PIXEL_TYPE = GL_UNSIGNED_BYTE;
 
 /// GROSS!!!
 static int GLOBAL_width = 0;
@@ -81,6 +82,7 @@ void SharedVideoPlayer::signalKilled()
 
 
 /// This function is executed in the worker thread
+/*
 void SharedVideoPlayer::consumeFrame(SharedVideoBuffer *sharedBuffer)
 {
     using boost::interprocess::scoped_lock;
@@ -140,6 +142,7 @@ void SharedVideoPlayer::consumeFrame(SharedVideoBuffer *sharedBuffer)
     // erase shared memory
     // shared_memory_object::remove("shared_memory");
 }
+*/
 
 
 osg::ref_ptr<osg::Geode> createRectangle(SharedVideoPlayer &player, unsigned char *pixelData)
@@ -321,14 +324,16 @@ int main (int argc, char* argv[])
 
             // start our consumer thread, which is a member function of our player object and
             // takes sharedBuffer as an argument
+            /*
             boost::thread worker(boost::bind<void>(boost::mem_fn(&SharedVideoPlayer::consumeFrame), 
                         boost::ref(player), 
                         sharedBuffer));
+            */
 
             player.run();
 
             player.signalKilled(); // let worker know that the mainloop has exitted
-            worker.join(); // wait for worker to end out before main thread does
+            //worker.join(); // wait for worker to end out before main thread does
             std::cout << "Main thread going out\n";
         }
         catch(interprocess_exception &ex)
