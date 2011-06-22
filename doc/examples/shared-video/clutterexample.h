@@ -1,6 +1,3 @@
-#ifndef _OSG_VIEWER_H_
-#define _OSG_VIEWER_H_
-
 #include <boost/thread/thread.hpp>
 #include <boost/thread/condition.hpp>
 
@@ -11,11 +8,15 @@ class SharedVideoPlayer
 {
     friend class TextureUpdateCallback;
     private:
-        osgViewer::Viewer viewer_;
+    public:
+        ClutterActor *stage;
+        ClutterActor *texture;
+        ClutterTimeline *timeline;
         boost::mutex displayMutex_;
         boost::condition_variable textureUploadedCondition_;
         bool killed_;
-    public:
+        unsigned char *pixels;
+
         SharedVideoPlayer();
         void signalKilled();
         void init(unsigned char *pixelData);
@@ -23,7 +24,7 @@ class SharedVideoPlayer
         void consumeFrame(SharedVideoBuffer *sharedBuffer);
 };
 
-
+/*
 class TextureUpdateCallback : public osg::NodeCallback
 {
     public:
@@ -40,8 +41,4 @@ class TextureUpdateCallback : public osg::NodeCallback
         osg::ref_ptr<osg::Image> videoImage_;
         osg::ref_ptr<osg::TextureRectangle> videoTexture_;
 };
-
-
-
-
-#endif // _OSG_VIEWER_H_
+*/

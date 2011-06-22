@@ -8,6 +8,7 @@
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include "./clutterexample.h"
 #include "sharedVideoBuffer.h"
 
 #include <boost/thread/thread.hpp>
@@ -21,9 +22,6 @@
 /// FUCKING GROSS!!!
 static int GLOBAL_width = 0;
 static int GLOBAL_height = 0;
-static SharedVideoBuffer *sharedBuffer;
-CoglHandle glTexture;
-unsigned char rgbPixels[640*480*3];
 int framecount = 0;
 
 static void key_event_cb(ClutterActor *actor, ClutterKeyEvent *event, gpointer data)
@@ -43,104 +41,134 @@ static void key_event_cb(ClutterActor *actor, ClutterKeyEvent *event, gpointer d
 
 static void on_frame_cb(ClutterTimeline *timeline, guint *ms, gpointer data)
 { 
-    /*unsigned short* pSrcBitmap;
-    pSrcBitmap = (unsigned short*)sharedBuffer->pixelsAddress();
-    unsigned short srcPixel;
-    //unsigned char* pTargetBitmap;
-    //pTargetBitmap = &rgbPixels[0];
-    unsigned char r=0,g=0,b=0;
-    */
+    //SharedVideoPlayer *player = (SharedVideoPlayer*)&data;
+    boost::mutex::scoped_lock displayLock(((SharedVideoPlayer*)data)->displayMutex_);
 
-    //copy
-    /*
-    for(int y=0; y < GLOBAL_height; y++)
-    {
-        for(int x=0; x < GLOBAL_width; x++)
-        {
-            srcPixel = (unsigned short)*pSrcBitmap++;
-            // get indexes
-            r = (srcPixel >> 11) & 31;
-            g = (srcPixel >> 5 ) & 63;
-            b = (srcPixel & 31);
-
-
-            // store new values as rgb888
-            rgbPixels[(y*GLOBAL_width*3)+(x*3)+0] = (unsigned char)255; 
-            rgbPixels[(y*GLOBAL_width*3)+(x*3)+1] = (unsigned char)0; 
-            rgbPixels[(y*GLOBAL_width*3)+(x*3)+2] = (unsigned char)0; 
-            rgbPixels[(y*GLOBAL_width*3)+(x*3)+0] = __aRBLookUpTable[r];
-            rgbPixels[(y*GLOBAL_width*3)+(x*3)+1] = __aGLookUpTable[g];
-            rgbPixels[(y*GLOBAL_width*3)+(x*3)+2] = __aRBLookUpTable[b];
-        }
-    }
-    */
-
-
-    /*
-    short red_mask = 0xF800;
-    short green_mask = 0x7E0;
-    short blue_mask = 0x1F;
-    unsigned char red_value;
-    unsigned char green_value;
-    unsigned char blue_value;
-    */
-    // rgb565 -> rgb888
-    //x8 = 255/31 * x5
-    //x8 = 255/63 * x6
-    /*
-    short fiveSixFive;
-    for (int i=0;i<640*480;i++) {
-        fiveSixFive = (sharedBuffer->pixelsAddress()[i] >> 8) & (sharedBuffer->pixelsAddress()[i] << 8);
-        red_value = (fiveSixFive & red_mask) >> 11;
-        green_value = (fiveSixFive & green_mask) >> 5;
-        blue_value = (fiveSixFive & blue_mask);
-        rgbPixels[(i*3)+0] = red_value;
-        rgbPixels[(i*3)+1] = red_value;
-        rgbPixels[(i*3)+2] = red_value;
-    }
-    */
-
-    bool feedback = clutter_texture_set_from_rgb_data(CLUTTER_TEXTURE(data),sharedBuffer->pixelsAddress(),false,GLOBAL_width,GLOBAL_height,0,3,CLUTTER_TEXTURE_NONE,NULL);
+    bool feedback = clutter_texture_set_from_rgb_data(CLUTTER_TEXTURE(((SharedVideoPlayer*)data)->texture),((SharedVideoPlayer*)data)->pixels,false,GLOBAL_width,GLOBAL_height,0,3,CLUTTER_TEXTURE_NONE,NULL);
     if (!feedback) {
         std::cout << "failed" << std::endl;
     }
-    clutter_actor_set_size(CLUTTER_ACTOR(data), GLOBAL_width, GLOBAL_height);
-    /*
+
+    UNUSED(timeline);
+    UNUSED(ms);
+
+    framecount++;
+
+    ((SharedVideoPlayer*)data)->textureUploadedCondition_.notify_one();
+}
+
+void SharedVideoPlayer::consumeFrame(SharedVideoBuffer *sharedBuffer)
+{
+    using boost::interprocess::scoped_lock;
+    using boost::interprocess::interprocess_mutex;
+    using boost::interprocess::shared_memory_object;
+
+    std::cout << "\nWorker thread started.\n";
+
+    // get frames until the other process marks the end
+    bool end_loop = false;
+
+    // make sure there's no sentinel
+    {
+        // Lock the mutex
+        //scoped_lock<interprocess_mutex> lock(sharedBuffer->getMutex());
+        //sharedBuffer->startPushing();   // tell appsink to give us buffers
+        boost::mutex::scoped_lock displayLock(displayMutex_);
+    }
+
+
+    do
+    {
+        {
+            // Lock the mutex
+            scoped_lock<interprocess_mutex> lock(sharedBuffer->getMutex());
+
+            // wait for new buffer to be pushed if it's empty
+            //sharedBuffer->waitOnProducer(lock);
+
+            if (not sharedBuffer->waitOnProducer(lock)) 
+            {
+                end_loop = true;
+            }
+            else
+            {
+                // got a new buffer, wait until we upload it in gl thread before notifying producer
+                {
+                    boost::mutex::scoped_lock displayLock(displayMutex_);
+
+                    if (killed_)
+                    {
+                        end_loop = true;
+                    }
+                    else
+                        textureUploadedCondition_.wait(displayLock);
+                }
+
+                // Notify the other process that the buffer status has changed
+                sharedBuffer->notifyProducer();
+            }
+            // mutex is released (goes out of scope) here
+        }
+    }
+    while (!end_loop);
+
+    std::cout << "\nWorker thread Going out.\n";
+    // erase shared memory
+    // shared_memory_object::remove("shared_memory");
+}
+
+SharedVideoPlayer::SharedVideoPlayer() : 
+    displayMutex_(), textureUploadedCondition_(), killed_(false)
+{}
+
+void SharedVideoPlayer::init(unsigned char *pixelData) {
+
+    pixels = pixelData;
+    ClutterColor blue = { 0x00, 0x00, 0xff, 0xff };
+
+    /* Get the stage and set its size and color: */
+    stage = clutter_stage_get_default();
+    //clutter_actor_set_size(stage, GLOBAL_width, GLOBAL_height);
+    clutter_stage_set_color(CLUTTER_STAGE(stage),&blue); 
+
+    // Create glTexture to set ClutterActor with rgb565 data
+
+    // Create and add texture actor
+    texture = clutter_texture_new();
     GError* error = NULL;
-    data = clutter_texture_new_from_file("face.png",&error);
+    /*
+    texture = clutter_texture_new_from_file("face.png",&error);
+    clutter_actor_set_size(texture, GLOBAL_width, GLOBAL_height);
+    */
+    clutter_container_add_actor(CLUTTER_CONTAINER(stage), texture);
+    clutter_actor_show(texture);
+    clutter_actor_show(stage);
     //UNUSED(texture);
     if (error != NULL) {
         std::cout << "error" << std::endl;
     }
-    */
 
-/*
-    glTexture = cogl_texture_new_from_data(
-            GLOBAL_width,
-            GLOBAL_height,
-            COGL_TEXTURE_NONE,
-            COGL_PIXEL_FORMAT_RGB_888,
-            COGL_PIXEL_FORMAT_RGB_888,
-            GLOBAL_width*2,
-            sharedBuffer->pixelsAddress());            
-    */
-    /*
-    glTexture = cogl_texture_new_from_data(
-            GLOBAL_width,
-            GLOBAL_height,
-            COGL_TEXTURE_NONE,
-            COGL_PIXEL_FORMAT_RGB_888,
-            COGL_PIXEL_FORMAT_RGB_888,
-            GLOBAL_width*3,
-            pTargetBitmap);            
-    clutter_texture_set_cogl_texture(CLUTTER_TEXTURE(data),glTexture);
-    */
-    UNUSED(timeline);
-    UNUSED(ms);
+    // timeline to attach a callback for each frame that is rendered
+    timeline = clutter_timeline_new(60); // ms
 
+    g_signal_connect(timeline, "new-frame", G_CALLBACK(on_frame_cb), this);
+    g_signal_connect(stage, "key-press-event", G_CALLBACK(key_event_cb), NULL);
 
-    //g_print("on_frame_cb\n");
-    framecount++;
+    clutter_timeline_set_loop(timeline, TRUE);
+    clutter_timeline_start(timeline);
+}
+
+void SharedVideoPlayer::run() {
+    g_print("Starting the main loop...\n");
+    clutter_main();
+}
+
+/// Called from main thread
+void SharedVideoPlayer::signalKilled()
+{
+    boost::mutex::scoped_lock displayLock(displayMutex_);
+    killed_ = true;
+    textureUploadedCondition_.notify_one(); // in case we're waiting in consumeFrame
 }
 
 int main(int argc, char *argv[])
@@ -176,37 +204,29 @@ int main(int argc, char *argv[])
             void *addr = region.get_address();
 
             // cast to pointer of type of our shared structure
-            sharedBuffer = static_cast<SharedVideoBuffer*>(addr);
+            SharedVideoBuffer *sharedBuffer = static_cast<SharedVideoBuffer*>(addr);
             GLOBAL_width = sharedBuffer->getWidth();
             GLOBAL_height = sharedBuffer->getHeight();
             
             std::cout << "resolution = " << GLOBAL_width << "x" << GLOBAL_height << std::endl;
 
-            std::cout << "sizeof(short)" << sizeof(short) << std::endl;
-            std::cout << "sizeof(unsigned char)" << sizeof(unsigned char) << std::endl;
-            /*
-            for (int i=6000;i<6100;i++) {
-                std::cout << "buffer[" << i << "] " << int(sharedBuffer->pixelsAddress()[i]) << std::endl;
-            }
-            */
+            clutter_init(&argc, &argv);
 
-            //SharedVideoPlayer player;
+            SharedVideoPlayer player;
 
             // grab the ptr
-            //player.init(sharedBuffer->pixelsAddress());
+            player.init(sharedBuffer->pixelsAddress());
 
             // start our consumer thread, which is a member function of our player object and
             // takes sharedBuffer as an argument
-            /*
             boost::thread worker(boost::bind<void>(boost::mem_fn(&SharedVideoPlayer::consumeFrame), 
                         boost::ref(player), 
                         sharedBuffer));
-            */
 
-            //player.run();
+            player.run();
 
-            //player.signalKilled(); // let worker know that the mainloop has exitted
-            //worker.join(); // wait for worker to end out before main thread does
+            player.signalKilled(); // let worker know that the mainloop has exitted
+            worker.join(); // wait for worker to end out before main thread does
             std::cout << "Main thread going out\n";
         }
         catch(interprocess_exception &ex)
@@ -226,48 +246,6 @@ int main(int argc, char *argv[])
         }
     }   // end while not opened
 
-
-    clutter_init(&argc, &argv);
-
-    ClutterColor blue = { 0x00, 0x00, 0xff, 0xff };
-    ClutterActor *stage = NULL;
-    ClutterActor *texture = NULL;
-    ClutterTimeline *timeline = NULL;
-
-    /* Get the stage and set its size and color: */
-    stage = clutter_stage_get_default();
-    //clutter_actor_set_size(stage, GLOBAL_width, GLOBAL_height);
-    clutter_stage_set_color(CLUTTER_STAGE(stage),&blue); 
-
-    // Create glTexture to set ClutterActor with rgb565 data
-
-    // Create and add texture actor
-    texture = clutter_texture_new();
-    GError* error = NULL;
-    /*
-    texture = clutter_texture_new_from_file("face.png",&error);
-    clutter_actor_set_size(texture, GLOBAL_width, GLOBAL_height);
-    */
-    clutter_container_add_actor(CLUTTER_CONTAINER(stage), texture);
-    //UNUSED(texture);
-    if (error != NULL) {
-        std::cout << "error" << std::endl;
-    }
-
-    // timeline to attach a callback for each frame that is rendered
-    timeline = clutter_timeline_new(100000); // ms
-    clutter_timeline_set_loop(timeline, TRUE);
-    clutter_timeline_start(timeline);
-    
-
-    g_signal_connect(timeline, "new-frame", G_CALLBACK(on_frame_cb), texture);
-    g_signal_connect(stage, "key-press-event", G_CALLBACK(key_event_cb), NULL);
-
-    g_print("Starting the main loop...\n");
-    /* Start the main loop, so we can respond to events: */
-    clutter_actor_show_all(stage);
-    clutter_main();
-
-    return EXIT_SUCCESS;
+    return 0;
 }
 
