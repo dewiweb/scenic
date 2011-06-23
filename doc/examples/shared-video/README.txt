@@ -6,9 +6,12 @@ Scenic's shared-video library allows one to shared video between a milhouse rece
 Launch milhouse:
  $ lunch -g ./milhouse-shared-video.lunch
 
-Compile the app and run it:
+Compile the osg and clutter versions of the app and run it:
  $ make
- $ ./run
+Run the osg verson:
+ $ ./run sharedvideoexample
+Run the osg verson:
+ $ ./clutterrun sharedvideoexample
 
 Where to find more examples: 
  * In the SPIN Framework: src/spin/SharedVideoTexture.cpp and include/SharedVideoTexture.h
