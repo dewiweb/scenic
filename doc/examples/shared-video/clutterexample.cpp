@@ -151,7 +151,7 @@ void SharedVideoPlayer::signalKilled() {
 int main(int argc, char *argv[]) {
     using namespace boost::interprocess;
 
-    std::string sharedMemoryId("shared_memory");
+    std::string sharedMemoryId("sharedvideoexample");
     switch (argc) {
         case 2: // just id
             sharedMemoryId = std::string(argv[1]);
