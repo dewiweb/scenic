@@ -102,3 +102,5 @@ py/scripts/midistreamc
 py/scripts/scenicc
 scenic.pc
 shared-video*.pc
+tmp*
+doc/examples/shared-video/run

@@ -88,6 +88,8 @@ gst_plugins.sort()
 
 try:
     gst_plugins.remove('sharedvideosink')
+    gst_plugins.remove('v4lsrc')
+    gst_plugins.remove('glimagesink')
 except:
     pass
 
