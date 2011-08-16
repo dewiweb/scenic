@@ -104,3 +104,4 @@ scenic.pc
 shared-video*.pc
 tmp*
 doc/examples/shared-video/run
+doc/examples/shared-video/clutterrun
