@@ -16,7 +16,7 @@
 
 #define UNUSED(x) ((void) (x))
 
-/// FUCKING GROSS!!!
+/// GROSS!!!
 static int GLOBAL_width = 0;
 static int GLOBAL_height = 0;
 int framecount = 0;
