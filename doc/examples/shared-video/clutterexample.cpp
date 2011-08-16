@@ -1,18 +1,15 @@
-#include <clutter/clutter.h>
-#include <stdlib.h>
-#include <iostream>
-
 #include <boost/bind.hpp>
-#include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/mapped_region.hpp>
+#include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include <boost/lexical_cast.hpp>
-
-#include "./clutterexample.h"
-#include "sharedVideoBuffer.h"
-
-#include <boost/thread/thread.hpp>
 #include <boost/thread/condition.hpp>
+#include <boost/thread/thread.hpp>
+#include <clutter/clutter.h>
+#include <iostream>
+#include <sharedVideoBuffer.h>
+#include <stdlib.h>
+#include "clutterexample.h"
 
 #define UNUSED(x) ((void) (x))
 
@@ -21,7 +18,8 @@ static int GLOBAL_width = 0;
 static int GLOBAL_height = 0;
 int framecount = 0;
 
-static void key_event_cb(ClutterActor *actor, ClutterKeyEvent *event, gpointer data) {
+static void key_event_cb(ClutterActor *actor, ClutterKeyEvent *event, gpointer data)
+{
     switch (event->keyval)
     {
         case CLUTTER_Escape:
@@ -35,7 +33,8 @@ static void key_event_cb(ClutterActor *actor, ClutterKeyEvent *event, gpointer d
     }
 }
 
-static void on_frame_cb(ClutterTimeline *timeline, guint *ms, gpointer data) { 
+static void on_frame_cb(ClutterTimeline *timeline, guint *ms, gpointer data)
+{ 
     boost::mutex::scoped_lock displayLock(((SharedVideoPlayer*)data)->displayMutex_);
 
     CoglHandle new_texture = COGL_INVALID_HANDLE;
@@ -57,7 +56,8 @@ static void on_frame_cb(ClutterTimeline *timeline, guint *ms, gpointer data) {
     ((SharedVideoPlayer*)data)->textureUploadedCondition_.notify_one();
 }
 
-void SharedVideoPlayer::consumeFrame(SharedVideoBuffer *sharedBuffer) {
+void SharedVideoPlayer::consumeFrame(SharedVideoBuffer *sharedBuffer)
+{
     using boost::interprocess::scoped_lock;
     using boost::interprocess::interprocess_mutex;
     using boost::interprocess::shared_memory_object;
@@ -73,23 +73,29 @@ void SharedVideoPlayer::consumeFrame(SharedVideoBuffer *sharedBuffer) {
         boost::mutex::scoped_lock displayLock(displayMutex_);
     }
 
-
-    do {
+    do
+    {
         {
             // Lock the mutex
             scoped_lock<interprocess_mutex> lock(sharedBuffer->getMutex());
 
             // wait for new buffer to be pushed if it's empty
-            if (not sharedBuffer->waitOnProducer(lock)) {
+            if (not sharedBuffer->waitOnProducer(lock))
+            {
                 end_loop = true;
-            } else {
+            }
+            else
+            {
                 // got a new buffer, wait until we upload it in gl thread before notifying producer
                 {
                     boost::mutex::scoped_lock displayLock(displayMutex_);
 
-                    if (killed_) {
+                    if (killed_)
+                    {
                         end_loop = true;
-                    } else {
+                    }
+                    else
+                    {
                         textureUploadedCondition_.wait(displayLock);
                     }
                 }
@@ -99,17 +105,20 @@ void SharedVideoPlayer::consumeFrame(SharedVideoBuffer *sharedBuffer) {
             }
             // mutex is released (goes out of scope) here
         }
-    } while (!end_loop);
+    }
+    while (not end_loop);
 
     std::cout << "\nWorker thread Going out.\n";
 }
 
 SharedVideoPlayer::SharedVideoPlayer() : 
     displayMutex_(), textureUploadedCondition_(), killed_(false)
-{}
+{
+    // pass    
+}
 
-void SharedVideoPlayer::init(unsigned char *pixelData) {
-
+void SharedVideoPlayer::init(unsigned char *pixelData)
+{
     pixels = pixelData;
     ClutterColor blue = { 0x00, 0x00, 0xff, 0xff };
 
@@ -136,31 +145,37 @@ void SharedVideoPlayer::init(unsigned char *pixelData) {
     clutter_timeline_start(timeline);
 }
 
-void SharedVideoPlayer::run() {
+void SharedVideoPlayer::run()
+{
     g_print("Starting the main loop...\n");
     clutter_main();
 }
 
 /// Called from main thread
-void SharedVideoPlayer::signalKilled() {
+void SharedVideoPlayer::signalKilled()
+{
     boost::mutex::scoped_lock displayLock(displayMutex_);
     killed_ = true;
     textureUploadedCondition_.notify_one(); // in case we're waiting in consumeFrame
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     using namespace boost::interprocess;
 
     std::string sharedMemoryId("sharedvideoexample");
-    switch (argc) {
+    switch (argc)
+    {
         case 2: // just id
             sharedMemoryId = std::string(argv[1]);
             break;
     }
 
     bool opened = false;
-    while (!opened) {
-        try {
+    while (not opened)
+    {
+        try
+        {
             // open the already created shared memory object
             shared_memory_object shm(open_only, sharedMemoryId.c_str(), read_write);
             opened = true; 
@@ -196,14 +211,19 @@ int main(int argc, char *argv[]) {
             player.signalKilled(); // let worker know that the mainloop has exitted
             worker.join(); // wait for worker to end out before main thread does
             std::cout << "Main thread going out\n";
-        } catch(interprocess_exception &ex) {
+        }
+        catch(interprocess_exception &ex)
+        {
             static const char *MISSING_ERROR = "No such file or directory";
 
-            if (strncmp(ex.what(), MISSING_ERROR, strlen(MISSING_ERROR)) != 0) {
+            if (strncmp(ex.what(), MISSING_ERROR, strlen(MISSING_ERROR)) != 0)
+            {
                 shared_memory_object::remove(sharedMemoryId.c_str());
                 std::cout << "Unexpected exception: " << ex.what() << std::endl;
                 return 1;
-            } else {
+            }
+            else
+            {
                 std::cerr << "Shared buffer doesn't exist yet\n";
             }
         }
@@ -211,3 +231,4 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
