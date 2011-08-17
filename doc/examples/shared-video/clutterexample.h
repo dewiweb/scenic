@@ -1,16 +1,14 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/condition.hpp>
-
+#include <clutter/clutter.h>
 
 class SharedVideoBuffer;
 
 class SharedVideoPlayer
 {
-    friend class TextureUpdateCallback;
     private:
+        ClutterActor *texture_;
     public:
-        ClutterActor *stage;
-        ClutterActor *texture;
         ClutterTimeline *timeline;
         boost::mutex displayMutex_;
         boost::condition_variable textureUploadedCondition_;
@@ -20,25 +18,8 @@ class SharedVideoPlayer
         SharedVideoPlayer();
         void signalKilled();
         void init(unsigned char *pixelData);
-        void run();
         void consumeFrame(SharedVideoBuffer *sharedBuffer);
+        ClutterActor *get_texture();
+        static void on_frame_cb(ClutterTimeline *timeline, guint *ms, gpointer data);
 };
 
-/*
-class TextureUpdateCallback : public osg::NodeCallback
-{
-    public:
-        TextureUpdateCallback(SharedVideoPlayer &player, 
-                unsigned char *pixelData, 
-                osg::ref_ptr<osg::Image> videoImage, 
-                osg::ref_ptr<osg::TextureRectangle> videoTexture);
-
-        virtual void operator()(osg::Node*, osg::NodeVisitor* nv);
-
-    private:
-        SharedVideoPlayer &player_;
-        unsigned char * pixelData_;
-        osg::ref_ptr<osg::Image> videoImage_;
-        osg::ref_ptr<osg::TextureRectangle> videoTexture_;
-};
-*/

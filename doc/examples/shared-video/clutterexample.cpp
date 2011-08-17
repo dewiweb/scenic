@@ -1,3 +1,6 @@
+/**
+ * This example is in the public domain.
+ */
 #include <boost/bind.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
@@ -13,10 +16,22 @@
 
 #define UNUSED(x) ((void) (x))
 
+class App
+{
+    public:
+        ClutterActor *stage;
+};
+
+ClutterActor *SharedVideoPlayer::get_texture()
+{
+    return texture_;
+}
+
 /// GROSS!!!
 static int GLOBAL_width = 0;
 static int GLOBAL_height = 0;
 int framecount = 0;
+static const std::string SHARED_MEMORY_ID = "sharedvideoexample";
 
 static void key_event_cb(ClutterActor *actor, ClutterKeyEvent *event, gpointer data)
 {
@@ -33,27 +48,28 @@ static void key_event_cb(ClutterActor *actor, ClutterKeyEvent *event, gpointer d
     }
 }
 
-static void on_frame_cb(ClutterTimeline *timeline, guint *ms, gpointer data)
+void SharedVideoPlayer::on_frame_cb(ClutterTimeline *timeline, guint *ms, gpointer data)
 { 
-    boost::mutex::scoped_lock displayLock(((SharedVideoPlayer*)data)->displayMutex_);
+    SharedVideoPlayer* self = (SharedVideoPlayer *) data;
+    UNUSED(timeline);
+    UNUSED(ms);
+
+    boost::mutex::scoped_lock displayLock(self->displayMutex_);
 
     CoglHandle new_texture = COGL_INVALID_HANDLE;
     CoglTextureFlags flags = COGL_TEXTURE_NONE;
-    new_texture = cogl_texture_new_from_data(GLOBAL_width,GLOBAL_height,
+    new_texture = cogl_texture_new_from_data(GLOBAL_width, GLOBAL_height,
             flags,
             COGL_PIXEL_FORMAT_RGB_565,
             COGL_PIXEL_FORMAT_ANY,
             0,
-            ((SharedVideoPlayer*)data)->pixels);
-    clutter_texture_set_cogl_texture(CLUTTER_TEXTURE(((SharedVideoPlayer*)data)->texture), new_texture);
+            self->pixels);
+    clutter_texture_set_cogl_texture(CLUTTER_TEXTURE(self->texture_), new_texture);
     cogl_handle_unref(new_texture);
-
-    UNUSED(timeline);
-    UNUSED(ms);
 
     framecount++;
 
-    ((SharedVideoPlayer*)data)->textureUploadedCondition_.notify_one();
+    self->textureUploadedCondition_.notify_one();
 }
 
 void SharedVideoPlayer::consumeFrame(SharedVideoBuffer *sharedBuffer)
@@ -72,13 +88,12 @@ void SharedVideoPlayer::consumeFrame(SharedVideoBuffer *sharedBuffer)
         // Lock the mutex
         boost::mutex::scoped_lock displayLock(displayMutex_);
     }
-
+    // consume all the frames received
     do
     {
         {
             // Lock the mutex
             scoped_lock<interprocess_mutex> lock(sharedBuffer->getMutex());
-
             // wait for new buffer to be pushed if it's empty
             if (not sharedBuffer->waitOnProducer(lock))
             {
@@ -89,17 +104,11 @@ void SharedVideoPlayer::consumeFrame(SharedVideoBuffer *sharedBuffer)
                 // got a new buffer, wait until we upload it in gl thread before notifying producer
                 {
                     boost::mutex::scoped_lock displayLock(displayMutex_);
-
                     if (killed_)
-                    {
                         end_loop = true;
-                    }
                     else
-                    {
                         textureUploadedCondition_.wait(displayLock);
-                    }
                 }
-
                 // Notify the other process that the buffer status has changed
                 sharedBuffer->notifyProducer();
             }
@@ -107,48 +116,27 @@ void SharedVideoPlayer::consumeFrame(SharedVideoBuffer *sharedBuffer)
         }
     }
     while (not end_loop);
-
     std::cout << "\nWorker thread Going out.\n";
 }
 
 SharedVideoPlayer::SharedVideoPlayer() : 
-    displayMutex_(), textureUploadedCondition_(), killed_(false)
+    displayMutex_(),
+    textureUploadedCondition_(),
+    killed_(false)
 {
-    // pass    
+    texture_ = clutter_texture_new();
 }
 
 void SharedVideoPlayer::init(unsigned char *pixelData)
 {
     pixels = pixelData;
-    ClutterColor blue = { 0x00, 0x00, 0xff, 0xff };
-
-    /* Get the stage and set its size and color: */
-    stage = clutter_stage_get_default();
-    clutter_stage_set_color(CLUTTER_STAGE(stage),&blue); 
-
     // Create glTexture to set ClutterActor with rgb565 data
-
     // Create and add texture actor
-    texture = clutter_texture_new();
-
-    clutter_container_add_actor(CLUTTER_CONTAINER(stage), texture);
-    clutter_actor_show(texture);
-    clutter_actor_show(stage);
-
     // timeline to attach a callback for each frame that is rendered
     timeline = clutter_timeline_new(60); // ms
-
-    g_signal_connect(timeline, "new-frame", G_CALLBACK(on_frame_cb), this);
-    g_signal_connect(stage, "key-press-event", G_CALLBACK(key_event_cb), NULL);
-
+    g_signal_connect(timeline, "new-frame", G_CALLBACK(SharedVideoPlayer::on_frame_cb), this);
     clutter_timeline_set_loop(timeline, TRUE);
     clutter_timeline_start(timeline);
-}
-
-void SharedVideoPlayer::run()
-{
-    g_print("Starting the main loop...\n");
-    clutter_main();
 }
 
 /// Called from main thread
@@ -162,16 +150,9 @@ void SharedVideoPlayer::signalKilled()
 int main(int argc, char *argv[])
 {
     using namespace boost::interprocess;
-
-    std::string sharedMemoryId("sharedvideoexample");
-    switch (argc)
-    {
-        case 2: // just id
-            sharedMemoryId = std::string(argv[1]);
-            break;
-    }
-
+    std::string sharedMemoryId(SHARED_MEMORY_ID);
     bool opened = false;
+
     while (not opened)
     {
         try
@@ -182,7 +163,6 @@ int main(int argc, char *argv[])
 
             // map the whole shared memory in this process
             mapped_region region(shm, read_write);
-
             // get the address of the region
             void *addr = region.get_address();
 
@@ -194,19 +174,31 @@ int main(int argc, char *argv[])
             std::cout << "resolution = " << GLOBAL_width << "x" << GLOBAL_height << std::endl;
 
             clutter_init(&argc, &argv);
-
             SharedVideoPlayer player;
+            App app;
+            /* Get the stage and set its size and color: */
+            ClutterColor blue = { 0x00, 0x00, 0xff, 0xff };
+            app.stage = clutter_stage_get_default();
+            clutter_stage_set_color(CLUTTER_STAGE(app.stage), &blue);
 
+            ClutterActor *texture = player.get_texture();
+            clutter_container_add_actor(CLUTTER_CONTAINER(app.stage), texture);
+            clutter_actor_show(texture);
+            clutter_actor_show(app.stage);
             // grab the ptr
             player.init(sharedBuffer->pixelsAddress());
+            g_signal_connect(app.stage, "key-press-event", G_CALLBACK(key_event_cb), NULL);
 
             // start our consumer thread, which is a member function of our player object and
             // takes sharedBuffer as an argument
-            boost::thread worker(boost::bind<void>(boost::mem_fn(&SharedVideoPlayer::consumeFrame), 
-                        boost::ref(player), 
-                        sharedBuffer));
+            boost::thread worker(
+                boost::bind<void>(boost::mem_fn(&SharedVideoPlayer::consumeFrame), 
+                boost::ref(player), 
+                sharedBuffer)
+                );
 
-            player.run();
+            g_print("Starting the main loop...\n");
+            clutter_main();
 
             player.signalKilled(); // let worker know that the mainloop has exitted
             worker.join(); // wait for worker to end out before main thread does
@@ -215,20 +207,18 @@ int main(int argc, char *argv[])
         catch(interprocess_exception &ex)
         {
             static const char *MISSING_ERROR = "No such file or directory";
-
-            if (strncmp(ex.what(), MISSING_ERROR, strlen(MISSING_ERROR)) != 0)
+            if (g_strcmp0(ex.what(), MISSING_ERROR) == 0)
+            {
+                std::cerr << "Shared buffer doesn't exist yet\n";
+            }
+            else
             {
                 shared_memory_object::remove(sharedMemoryId.c_str());
                 std::cout << "Unexpected exception: " << ex.what() << std::endl;
                 return 1;
             }
-            else
-            {
-                std::cerr << "Shared buffer doesn't exist yet\n";
-            }
         }
-    }   // end while not opened
-
+    } // end while not opened
     return 0;
 }
 
