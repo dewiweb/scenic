@@ -9,7 +9,7 @@ class SharedVideoPlayer
     private:
         ClutterActor *texture_;
     public:
-        ClutterTimeline *timeline;
+        ClutterTimeline *timeline_;
         boost::mutex displayMutex_;
         boost::condition_variable textureUploadedCondition_;
         bool killed_;
@@ -17,7 +17,7 @@ class SharedVideoPlayer
 
         SharedVideoPlayer();
         void signalKilled();
-        void init(unsigned char *pixelData);
+        void init_pixels(unsigned char *pixelData);
         void consumeFrame(SharedVideoBuffer *sharedBuffer);
         ClutterActor *get_texture();
         static void on_frame_cb(ClutterTimeline *timeline, guint *ms, gpointer data);

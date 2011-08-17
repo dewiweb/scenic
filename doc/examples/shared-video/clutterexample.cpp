@@ -48,11 +48,9 @@ static void key_event_cb(ClutterActor *actor, ClutterKeyEvent *event, gpointer d
     }
 }
 
-void SharedVideoPlayer::on_frame_cb(ClutterTimeline *timeline, guint *ms, gpointer data)
+void SharedVideoPlayer::on_frame_cb(ClutterTimeline * /*timeline*/, guint * /*ms*/, gpointer data)
 { 
     SharedVideoPlayer* self = (SharedVideoPlayer *) data;
-    UNUSED(timeline);
-    UNUSED(ms);
 
     boost::mutex::scoped_lock displayLock(self->displayMutex_);
 
@@ -125,18 +123,19 @@ SharedVideoPlayer::SharedVideoPlayer() :
     killed_(false)
 {
     texture_ = clutter_texture_new();
+
+    // timeline to attach a callback for each frame that is rendered
+    timeline_ = clutter_timeline_new(60); // ms
+    g_signal_connect(timeline_, "new-frame", G_CALLBACK(SharedVideoPlayer::on_frame_cb), this);
+    clutter_timeline_set_loop(timeline_, TRUE);
+    clutter_timeline_start(timeline_);
 }
 
-void SharedVideoPlayer::init(unsigned char *pixelData)
+void SharedVideoPlayer::init_pixels(unsigned char *pixelData)
 {
     pixels = pixelData;
     // Create glTexture to set ClutterActor with rgb565 data
     // Create and add texture actor
-    // timeline to attach a callback for each frame that is rendered
-    timeline = clutter_timeline_new(60); // ms
-    g_signal_connect(timeline, "new-frame", G_CALLBACK(SharedVideoPlayer::on_frame_cb), this);
-    clutter_timeline_set_loop(timeline, TRUE);
-    clutter_timeline_start(timeline);
 }
 
 /// Called from main thread
@@ -186,7 +185,7 @@ int main(int argc, char *argv[])
             clutter_actor_show(texture);
             clutter_actor_show(app.stage);
             // grab the ptr
-            player.init(sharedBuffer->pixelsAddress());
+            player.init_pixels(sharedBuffer->pixelsAddress());
             g_signal_connect(app.stage, "key-press-event", G_CALLBACK(key_event_cb), NULL);
 
             // start our consumer thread, which is a member function of our player object and
