@@ -211,8 +211,9 @@ int main(int argc, char *argv[])
 
     bool opened = false;
     std::string sharedMemoryId(SHARED_MEMORY_ID);
-    App app;
     SharedVideoPlayer player;
+
+    ClutterActor *stage;
 
     while (not opened)
     {
@@ -221,15 +222,14 @@ int main(int argc, char *argv[])
 
     /* Get the stage and set its size and color: */
     ClutterColor blue = { 0x00, 0x00, 0xff, 0xff };
-    app.stage = clutter_stage_get_default();
-    clutter_stage_set_color(CLUTTER_STAGE(app.stage), &blue);
+    stage = clutter_stage_get_default();
+    clutter_stage_set_color(CLUTTER_STAGE(stage), &blue);
     ClutterActor *texture = player.get_texture();
-    clutter_container_add_actor(CLUTTER_CONTAINER(app.stage), texture);
-    clutter_actor_show(texture);
-    clutter_actor_show(app.stage);
+    clutter_container_add_actor(CLUTTER_CONTAINER(stage), texture);
+    clutter_actor_show(stage);
     // grab the ptr
     player.init_pixels(player.getBuffer()->pixelsAddress());
-    g_signal_connect(app.stage, "key-press-event", G_CALLBACK(key_event_cb), NULL);
+    g_signal_connect(stage, "key-press-event", G_CALLBACK(key_event_cb), NULL);
     player.start_consuming();
 
     g_print("Starting the main loop...\n");
