@@ -176,6 +176,7 @@ class StreamerManager(object):
                     "fullscreen": self.app.config.video_fullscreen, # bool
                     "display": self.app.config.video_display,
                     "bitrate": self.app.config.video_bitrate, # float
+                    "flip-video": self.app.config.flip_video, # str
 
                     # Decided by remote peer:
                     "aspect-ratio": remote_config["video"]["aspect_ratio"],
@@ -381,6 +382,7 @@ class StreamerManager(object):
                 '--aspect-ratio', details["receive"]["video"]["aspect-ratio"],
                 '--window-title', details["receive"]["video"]["window-title"],
                 '--videodisplay', details["receive"]["video"]["display"],
+                '--flip-video', details["receive"]["video"]["flip_video"],
                 ])
             if details["receive"]["video"]["fullscreen"]:
                 milhouse_recv_cmd_video.append('--fullscreen')
