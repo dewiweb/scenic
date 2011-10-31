@@ -184,13 +184,13 @@ VIDEO_STANDARDS = ["NTSC", "PAL"]
 # flip modes:
 FLIP_MODES  = {
     _("Do not flip") : "none",
-    _("Clockwise") : "clockwise",
+    _("Rotate right") : "clockwise",
     _("180 degrees") : "rotate-180",
-    _("Counterclockwise") : "ccounterclockwise",
+    _("Rotate left") : "counterclockwise",
     _("Horizontal flip") : "horizontal-flip",
     _("Vertical flip") : "vertical-flip",
-    _("Upper left diagonal") : "upper-left-diagonal",
-    _("Upper right diagonal") : "upper-right-diagonal",
+    _("Rotate left & flip") : "upper-left-diagonal",
+    _("Rotate right & flip") : "upper-right-diagonal",
     }
 
 def format_contact_markup(contact):
