@@ -915,7 +915,7 @@ class Gui(object):
         self.video_jitterbuffer_widget.set_value(_get_config("video_jitterbuffer")) # spinbutton
         self.video_bitrate_widget.set_value(_get_config("video_bitrate")) # spinbutton
         self.preview_in_window_widget.set_active(_get_config("preview_in_window"))
-        _set_combobox_value(self.flip_video_widget, _get_key_for_value(FLIP_MODE, _get_config("flip_video")))
+        _set_combobox_value(self.flip_video_widget, _get_key_for_value(FLIP_MODES, _get_config("flip_video")))
         # VIDEO SOURCE AND DEVICE:
         if self.app.config.video_source == "videotestsrc":
             video_source = "Color bars"

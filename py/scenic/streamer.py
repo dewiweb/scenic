@@ -382,7 +382,7 @@ class StreamerManager(object):
                 '--aspect-ratio', details["receive"]["video"]["aspect-ratio"],
                 '--window-title', details["receive"]["video"]["window-title"],
                 '--videodisplay', details["receive"]["video"]["display"],
-                '--flip-video', details["receive"]["video"]["flip_video"],
+                '--flip-video', details["receive"]["video"]["flip-video"],
                 ])
             if details["receive"]["video"]["fullscreen"]:
                 milhouse_recv_cmd_video.append('--fullscreen')
