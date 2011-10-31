@@ -142,6 +142,7 @@ class Config(saving.ConfigStateSaving):
         #self.theme = "Darklooks"
         self.video_bitrate = 3.0
         self.video_jitterbuffer = 75
+        self.flip_video = "none"
         # ----------- MIDI ----------------
         self.midi_recv_enabled = False
         self.midi_send_enabled = False

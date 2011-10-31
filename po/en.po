@@ -11,10 +11,10 @@ msgstr ""
 "PO-Revision-Date: 2010-05-13 18:09-0400\n"
 "Last-Translator: Alexandre Quessy <alexandre@quessy.net>\n"
 "Language-Team: English\n"
-"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: \n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: py/scenic/application.py:352
@@ -470,11 +470,11 @@ msgstr "Command lines:"
 #: py/scenic/gui.py:1488
 #, python-format
 msgid ""
-"Could not change V4L2 standard from %(current_standard)s to "
-"%(desired_standard)s for device %(device_name)s."
+"Could not change V4L2 standard from %(current_standard)s to %"
+"(desired_standard)s for device %(device_name)s."
 msgstr ""
-"Could not change V4L2 standard from %(current_standard)s to "
-"%(desired_standard)s for device %(device_name)s."
+"Could not change V4L2 standard from %(current_standard)s to %"
+"(desired_standard)s for device %(device_name)s."
 
 #: py/scenic/gui.py:1530
 #, python-format

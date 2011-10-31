@@ -181,6 +181,18 @@ VIDEO_BITRATE_MIN_MAX = {
 # standards:
 VIDEO_STANDARDS = ["NTSC", "PAL"]
 
+# flip modes:
+FLIP_MODES  = {
+    _("Do not flip") : "none",
+    _("Rotate right") : "clockwise",
+    _("180 degrees") : "rotate-180",
+    _("Rotate left") : "counterclockwise",
+    _("Horizontal flip") : "horizontal-flip",
+    _("Vertical flip") : "vertical-flip",
+    _("Rotate left & flip") : "upper-left-diagonal",
+    _("Rotate right & flip") : "upper-right-diagonal",
+    }
+
 def format_contact_markup(contact):
     """
     Formats a contact for the Adressbook GTK widget.
@@ -290,6 +302,7 @@ class Gui(object):
         self.v4l2_input_widget = widgets_tree.get_widget("v4l2_input")
         self.v4l2_standard_widget = widgets_tree.get_widget("v4l2_standard")
         self.video_jitterbuffer_widget = widgets_tree.get_widget("video_jitterbuffer")
+        self.flip_video_widget = widgets_tree.get_widget("flip_video")
         def _plug_removed_cb(widget):
             """ Called when a plug is removed from socket, returns
                 True so that it can be reused
@@ -861,6 +874,7 @@ class Gui(object):
         _set_config("audio_output_buffer", self.audio_output_buffer_widget.get_value_as_int())
         _set_config("audio_jitterbuffer", self.audio_jitterbuffer_widget.get_value_as_int()) # spinbutton
         _set_config("audio_jack_enable_autoconnect", self.audio_jack_enable_autoconnect_widget.get_active())
+        _set_config("flip_video", FLIP_MODES[_get_combobox_value(self.flip_video_widget)])
 
         # MIDI:
         if not self.app.midi_is_supported():
@@ -901,6 +915,7 @@ class Gui(object):
         self.video_jitterbuffer_widget.set_value(_get_config("video_jitterbuffer")) # spinbutton
         self.video_bitrate_widget.set_value(_get_config("video_bitrate")) # spinbutton
         self.preview_in_window_widget.set_active(_get_config("preview_in_window"))
+        _set_combobox_value(self.flip_video_widget, _get_key_for_value(FLIP_MODES, _get_config("flip_video")))
         # VIDEO SOURCE AND DEVICE:
         if self.app.config.video_source == "videotestsrc":
             video_source = "Color bars"

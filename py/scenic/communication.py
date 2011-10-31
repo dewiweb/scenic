@@ -195,3 +195,4 @@ def connect_send_and_disconnect(host, port, mess):
     clientPort = reactor.connectTCP(host, port, client_factory)
     client_factory.connected_deferred.addCallback(_on_connected).addErrback(_on_error)
     return d
+
