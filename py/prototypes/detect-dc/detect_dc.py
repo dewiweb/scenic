@@ -9,6 +9,7 @@ def parse_dc_cameras(text):
     dc_devices = {}
     sizes = []
     pmodes = []
+    frame_rates = []
     for line in text.splitlines():
         if line.startswith("DC1394 Camera"):
             name = " ".join(line.split()[3:])
@@ -17,14 +18,19 @@ def parse_dc_cameras(text):
                 "name" : name,
                 "sizes" : [],
                 "pmodes" : [],
+                "frame_rates" : [],
             }
         else:
             mode = parse_dc_vmodes(line)
             if mode:
                 sizes.append(mode[0])
                 pmodes.append(mode[1])
+            rates = parse_dc_framerates(line)
+            if rates:
+                frame_rates.append(rates)
             dc_devices[current_dc_device]["sizes"] = sizes
             dc_devices[current_dc_device]["pmodes"] = pmodes
+            dc_devices[current_dc_device]["frame_rates"] = frame_rates
     return dc_devices
 
 def parse_dc_vmodes(line):
@@ -48,7 +54,14 @@ def parse_dc_framerates(line):
     parse framerates
     i.e. Framerates: 3.75,7.5,15.30
     """
-    pass
+    _framerates = re.compile("Framerates")
+    result = _framerates.search(line)
+    if result:
+        frates_as_string = line.split()[1]
+        frates = frates_as_string.split(",")
+        return frates
+    else:
+        return None
 
 if __name__ == "__main__":
     pprint.pprint(parse_dc_cameras(DEVICE_OUTPUT))
