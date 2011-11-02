@@ -1,0 +1,16 @@
+DC1394 Camera 0: Unibrain Fire-i 1.2
+GUID = 814436102630ee6
+Supported modes :
+    640x480_MONO8 (vmode 69)
+    Framerates: 3.75,7.5,15,30
+    640x480_RGB8 (vmode 68)
+    Framerates: 3.75,7.5,15
+    640x480_YUV422 (vmode 67)
+    Framerates: 3.75,7.5,15
+    640x480_YUV411 (vmode 66)
+    Framerates: 3.75,7.5,15,30
+    320x240_YUV422 (vmode 65)
+    Framerates: 3.75,7.5,15,30
+    160x120_YUV444 (vmode 64)
+    Framerates: 7.5,15,30
+
