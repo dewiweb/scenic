@@ -40,7 +40,7 @@ def parse_dc_vmodes(line):
     """
     # TODO: do we need to know the vmode number actually?
     # anyways, let's extract the resolution and pixel format
-    # re: 4 spaces (3 digits)x(3 digits)_(2-4 letters)(1-3 digits)
+    # regex: 4 spaces (3 digits)x(3 digits)_(2-4 letters)(1-3 digits)
     vformat = re.compile(r"^\s{4}([0-9]{3}x[0-9]{3})_([A-Z]{2,4}[0-9]{1,3})")
     result = vformat.match(line)
     # we get tuples of resolution, pixel format
@@ -65,4 +65,3 @@ def parse_dc_framerates(line):
 
 if __name__ == "__main__":
     pprint.pprint(parse_dc_cameras(DEVICE_OUTPUT))
-
