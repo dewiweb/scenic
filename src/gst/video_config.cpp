@@ -71,8 +71,6 @@ VideoSource * VideoSourceConfig::createSource(const Pipeline &pipeline) const
         return new VideoTestSource(pipeline, *this);
     else if (source_ == "v4l2src")
         return new VideoV4lSource(pipeline, *this);
-    else if (source_ == "v4lsrc")
-        return new VideoV4lSource(pipeline, *this);
     else if (source_ == "dv1394src")
         return new VideoDvSource(pipeline, *this);
     else if (source_ == "filesrc")
