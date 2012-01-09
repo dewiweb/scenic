@@ -2,16 +2,25 @@
 
 import pprint
 import re
+import subprocess
 
-DEVICE_OUTPUT = open("dc-output.txt", "r").read()
+#DEVICE_OUTPUT = open("dc-output.txt", "r").read()
+command = "milhouse --list-cameras"
+dev_null = open("/dev/null", "wa")
+DEVICE_OUTPUT = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE).communicate()[0]
 
-def parse_dc_cameras(text):
+def parse_milhouse_dc_cameras(text):
     dc_devices = {}
     sizes = []
     pmodes = []
     frame_rates = []
+    current_dc_device = None
+    #print(text)
     for line in text.splitlines():
+        line = line.strip()
+        print(line)
         if line.startswith("DC1394 Camera"):
+            print("Success")
             name = " ".join(line.split()[3:])
             current_dc_device = name
             dc_devices[name] = {
@@ -64,4 +73,4 @@ def parse_dc_framerates(line):
         return None
 
 if __name__ == "__main__":
-    pprint.pprint(parse_dc_cameras(DEVICE_OUTPUT))
+    pprint.pprint(parse_milhouse_dc_cameras(DEVICE_OUTPUT))
