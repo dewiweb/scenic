@@ -25,6 +25,7 @@ Uses milhouse --list-v4l2
 """
 import os
 import pprint
+import re
 from twisted.internet import utils
 from twisted.internet import defer
 from twisted.python import procutils
@@ -62,6 +63,7 @@ def _parse_milhouse_list_cameras(text):
     @rtype: list
     """
     v4l2_devices = {}
+    dc_devices = {}
     currently_parsed_is_v4l2 = False
     current_v4l2_device = None
     for line in text.splitlines():
@@ -84,6 +86,7 @@ def _parse_milhouse_list_cameras(text):
             currently_parsed_is_v4l2 = True
         elif line.startswith("DC1394 Camera"):
             currently_parsed_is_v4l2 = False
+#            dc_cameras = _parse_milhouse_dc_cameras(text)
         # TODO: know if currently parsed is a V4L 1
         elif currently_parsed_is_v4l2:
             try:
@@ -149,6 +152,71 @@ def _parse_milhouse_list_cameras(text):
     #print v4l2_devices
     return v4l2_devices
 
+def _parse_milhouse_dc_cameras(text):
+    dc_devices = {}
+    sizes = []
+    pmodes = []
+    frame_rates = []
+    current_dc_device = None
+    currently_parsed_is_dc = False
+    for line in text.splitlines():
+        line = line.strip()
+        #print(line)
+        if line.startswith("DC1394 Camera"):
+            name = " ".join(line.split()[3:])
+            current_dc_device = name
+            dc_devices[name] = {
+                "name" : name,
+                "sizes" : [],
+                "pmodes" : [],
+                "frame_rates" : [],
+            }
+            currently_parsed_is_dc = True
+        elif line.startswith("Video4Linux Camera"):
+            currently_parsed_is_dc = False
+        elif currently_parsed_is_dc:
+            mode = _parse_dc_vmodes(line)
+            if mode:
+                sizes.append(mode[0])
+                pmodes.append(mode[1])
+            rates = _parse_dc_framerates(line)
+            if rates:
+                frame_rates.append(rates)
+            dc_devices[current_dc_device]["sizes"] = sizes
+            dc_devices[current_dc_device]["pmodes"] = pmodes
+            dc_devices[current_dc_device]["frame_rates"] = frame_rates
+    return dc_devices
+
+def _parse_dc_vmodes(line):
+    """
+    Parse video modes
+    i.e. 640x480_MONO8 (vmode 69)
+    """
+    # TODO: do we need to know the vmode number actually?
+    # anyways, let's extract the resolution and pixel format
+    # regex: 4 spaces (3 digits)x(3 digits)_(2-4 letters)(1-3 digits)
+    vformat = re.compile(r"^\s{4}([0-9]{3}x[0-9]{3})_([A-Z]{2,4}[0-9]{1,3})")
+    result = vformat.match(line)
+    # we get tuples of resolution, pixel format
+    if result:
+        return result.groups()
+    else:
+        return None
+
+def _parse_dc_framerates(line):
+    """
+    parse framerates
+    i.e. Framerates: 3.75,7.5,15.30
+    """
+    _framerates = re.compile("Framerates")
+    result = _framerates.search(line)
+    if result:
+        frates_as_string = line.split()[1]
+        frates = frates_as_string.split(",")
+        return frates
+    else:
+        return None
+
 def list_cameras():
     """
     Calls the Deferred with the dict of devices as argument.
@@ -157,15 +225,17 @@ def list_cameras():
     """
     def _cb(text, deferred):
         #print text
-        ret = _parse_milhouse_list_cameras(text)
-        deferred.callback(ret)
+        v4l_cameras = _parse_milhouse_list_cameras(text)
+        dc_cameras = _parse_milhouse_dc_cameras(text)
+        all_cameras = dict(v4l_cameras.items() + dc_cameras.items())
+        deferred.callback(all_cameras)
 
     def _eb(reason, deferred):
         deferred.errback(reason)
         print("Error listing cameras: %s" % (reason))
 
     command_name = "milhouse"
-    args = ['--list-v4l2']
+    args = ['--list-cameras']
     try:
         executable = procutils.which(command_name)[0] # gets the executable
     except IndexError:
@@ -289,4 +359,5 @@ def set_v4l2_video_standard(device_name="/dev/video0", standard="ntsc"):
 
 if __name__ == "__main__":
     pprint.pprint(_parse_milhouse_list_cameras(TESTDATA))
+    pprint.pprint(_parse_milhouse_dc_cameras(TESTDATA))
 
