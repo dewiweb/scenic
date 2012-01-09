@@ -55,6 +55,7 @@ def _beautify_camera_name(name):
     else:
         return name
 
+# TODO: Simplify to eliminate redundancy in code (parsing v4l and dc cameras) and clean up
 def _parse_milhouse_list_cameras(text):
     """
     Parses the output of `milhouse --list-v4l2`
@@ -152,6 +153,8 @@ def _parse_milhouse_list_cameras(text):
     #print v4l2_devices
     return v4l2_devices
 
+# TODO: generalize to include DV cameras(?)
+# TODO: prepare lists of frame sizes (if such can actually be useful)
 def _parse_milhouse_dc_cameras(text):
     dc_devices = {}
     sizes = []
