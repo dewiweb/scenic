@@ -74,6 +74,12 @@ if test "x${have_gstreamer_app}" = "xfalse" ; then
     AC_MSG_ERROR([missing package:  libgstreamer-plugins-app0.10-dev  ])
 fi
 
+#Trying to set CAIRO using pkg-config
+PKG_CHECK_MODULES(CAIRO, cairo, have_cairo=true, have_cairo=false)
+if test "x${have_cairo}" = "xfalse" ; then
+    AC_MSG_ERROR([missing package:  libcairo2-dev  ])
+fi
+
 #Trying to set GSTVIDEO using pkg-config
 PKG_CHECK_MODULES(GSTVIDEO, gstreamer-video-0.10, have_gstreamer_video=true, have_gstreamer_video=false)
 if test "x${have_gstreamer_video}" = "xfalse" ; then
@@ -81,7 +87,7 @@ if test "x${have_gstreamer_video}" = "xfalse" ; then
 fi
 
 #Trying to set GSTRTSP using pkg-config
-PKG_CHECK_MODULES(GST_RTSP_SERVER, gst-rtsp-server-0.10, have_gstreamer_rtsp=true, have_gstreamer_rtsp=false)
+PKG_CHECK_MODULES(GST_RTSP_SERVER, gst-rtsp-server-0.10 gstreamer-rtsp-0.10, have_gstreamer_rtsp=true, have_gstreamer_rtsp=false)
 if test "x${have_gstreamer_rtsp}" = "xfalse" ; then
     AC_MSG_ERROR([missing package:  libgstrtsp-server-0.10-dev])
 fi
@@ -99,7 +105,7 @@ if test "x${have_libavc1394}" = "xfalse" ; then
 fi
 
 #Trying to set LIBRAW1394 using pkg-config
-PKG_CHECK_MODULES(LIBRAW1394, [libraw1394], have_libraw1394=true, have_libraw1394=false)
+PKG_CHECK_MODULES(LIBRAW1394, [libraw1394 libavc1394], have_libraw1394=true, have_libraw1394=false)
 if test "x${have_libraw1394}" = "xfalse" ; then
 	AC_MSG_ERROR([missing package: libraw1394-dev ])
 fi
