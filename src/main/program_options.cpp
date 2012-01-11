@@ -61,7 +61,7 @@ po::options_description ProgramOptions::createDefaultOptions()
         ("audiosource,e", po::value<string>()->default_value("jackaudiosrc"),
          "audio input (autoaudiosrc,jackaudiosrc,alsasrc,pulsesrc)")
         ("videosource,u", po::value<string>()->default_value("videotestsrc"),
-         "video input (v4l2src,dc1394src,v4lsrc,dv1394src)")
+         "video input (v4l2src,dc1394src,dv1394src)")
         ("timeout,z", po::value<int>()->default_value(0), "time in ms to wait before quitting, 0=run indefinitely")
         ("audio-buffer,b", po::value<int>()->default_value(15), "size of audio buffer in milliseconds, must be >= 10")
         ("jitterbuffer,g", po::value<int>()->default_value(50), "size of receiver's rtp jitterbuffers in milliseconds, must be > 1")
