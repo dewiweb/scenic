@@ -35,9 +35,13 @@ class SharedVideoSink : public VideoSink
         virtual ~SharedVideoSink();
 
     private:
-	const std::string socketPath;
-	_GstElement *serializer;
-	virtual _GstElement *sinkElement() { return serializer; }
+        const std::string socketPath;
+        _GstElement *serializer;
+        virtual _GstElement *sinkElement()
+        {
+            return serializer;
+        }
 };
 
 #endif  // _SHARED_VIDEO_SINK_H_
+
