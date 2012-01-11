@@ -278,7 +278,6 @@ py/scenic/test/Makefile
 py/scripts/Makefile
 src/util/Makefile
 src/gutil/Makefile
-src/shared_video/Makefile
 src/vumeter/Makefile
 src/vumeter/test/Makefile
 src/caps/Makefile

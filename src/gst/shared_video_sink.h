@@ -23,39 +23,25 @@
 #define _SHARED_VIDEO_SINK_H_
 
 #include "video_sink.h"
-#include <boost/interprocess/mapped_region.hpp>
-#include <tr1/memory>
 
 class _GtkWidget;
 class _GstElement;
 class SharedVideoBuffer;
 
-namespace boost {
-    namespace interprocess {
-        class shared_memory_object;
-    }
-}
 class SharedVideoSink : public VideoSink
 {
     public:
-        SharedVideoSink(const Pipeline &pipeline, int width, int height, const std::string& sharedId_);
+        SharedVideoSink(const Pipeline &pipeline, const std::string& socketPath);
         virtual ~SharedVideoSink();
 
     private:
-
-        void prepareSink(int width, int height);
-        static std::tr1::shared_ptr<boost::interprocess::shared_memory_object> createSharedMemory(const std::string &id);
-        static bool removeSharedMemory(const std::string &id);
-        virtual _GstElement *sinkElement() { return colorspc_; }
-
-        const std::string id_;
-        static const int MAX_BUFFERS = 1;
-        _GstElement *colorspc_;
-        std::tr1::shared_ptr<boost::interprocess::shared_memory_object> shm_;
-        boost::interprocess::mapped_region region_;
-        SharedVideoBuffer *sharedBuffer_;
-
-        static void onNewBuffer(_GstElement *elt, SharedVideoSink *context);
+        const std::string socketPath;
+        _GstElement *serializer;
+        virtual _GstElement *sinkElement()
+        {
+            return serializer;
+        }
 };
 
 #endif  // _SHARED_VIDEO_SINK_H_
+

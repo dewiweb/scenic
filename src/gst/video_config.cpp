@@ -282,8 +282,7 @@ VideoSink * VideoSinkConfig::createSink(Pipeline &pipeline) const
             "autovideosink")
         result = new SimpleVideoSink(pipeline, *this);
     else if (sink_ == "sharedvideosink")
-        result = new SharedVideoSink(pipeline, effectiveDisplayWidth(),
-                effectiveDisplayHeight(), sharedVideoId_);
+        result = new SharedVideoSink(pipeline, sharedVideoId_);
     else
         THROW_ERROR(sink_ << " is an invalid videosink");
 

@@ -44,7 +44,6 @@ milhouse_LDADD = \
     $(top_builddir)/src/gst/libgst.la  \
     $(top_builddir)/src/gutil/libgutil.la \
     $(top_builddir)/src/rtsp/librtsp.la \
-    $(top_builddir)/src/shared_video/libshared_video.la \
     $(top_builddir)/src/util/libutil.la \
     $(top_builddir)/src/vumeter/libvumeter.la
 
