@@ -74,6 +74,12 @@ if test "x${have_gstreamer_app}" = "xfalse" ; then
     AC_MSG_ERROR([missing package:  libgstreamer-plugins-app0.10-dev  ])
 fi
 
+#Trying to set CAIRO using pkg-config
+PKG_CHECK_MODULES(CAIRO, cairo, have_cairo=true, have_cairo=false)
+if test "x${have_cairo}" = "xfalse" ; then
+    AC_MSG_ERROR([missing package:  libcairo2-dev  ])
+fi
+
 #Trying to set GSTVIDEO using pkg-config
 PKG_CHECK_MODULES(GSTVIDEO, gstreamer-video-0.10, have_gstreamer_video=true, have_gstreamer_video=false)
 if test "x${have_gstreamer_video}" = "xfalse" ; then
@@ -81,7 +87,7 @@ if test "x${have_gstreamer_video}" = "xfalse" ; then
 fi
 
 #Trying to set GSTRTSP using pkg-config
-PKG_CHECK_MODULES(GST_RTSP_SERVER, gst-rtsp-server-0.10, have_gstreamer_rtsp=true, have_gstreamer_rtsp=false)
+PKG_CHECK_MODULES(GST_RTSP_SERVER, gst-rtsp-server-0.10 gstreamer-rtsp-0.10, have_gstreamer_rtsp=true, have_gstreamer_rtsp=false)
 if test "x${have_gstreamer_rtsp}" = "xfalse" ; then
     AC_MSG_ERROR([missing package:  libgstrtsp-server-0.10-dev])
 fi
@@ -99,7 +105,7 @@ if test "x${have_libavc1394}" = "xfalse" ; then
 fi
 
 #Trying to set LIBRAW1394 using pkg-config
-PKG_CHECK_MODULES(LIBRAW1394, [libraw1394], have_libraw1394=true, have_libraw1394=false)
+PKG_CHECK_MODULES(LIBRAW1394, [libraw1394 libavc1394], have_libraw1394=true, have_libraw1394=false)
 if test "x${have_libraw1394}" = "xfalse" ; then
 	AC_MSG_ERROR([missing package: libraw1394-dev ])
 fi
@@ -206,10 +212,10 @@ AS_IF([! $PYTHON $GST_CHECK], [AC_MSG_ERROR([Not all gstreamer plugins installed
 #AM_GST_ELEMENT_CHECK(["xvimagesink"], [AC_MSG_NOTICE([OK])],  [AC_MSG_ERROR([Requires xvimagesink])])
 CFLAGS="-O2"
 CXXFLAGS=$CFLAGS
-
+dnl -std=c99 -pedantic  XXX commas at end of enumation list are not C++-OK
 if test "x${enable_debug}" = "xyes" ; then
     AC_DEFINE(CONFIG_DEBUG_LOCAL,[],[Debug define from configure])
-    CFLAGS="-O2 -Wextra -pedantic -Wfatal-errors -Werror -Wall -Wno-long-long -Wno-variadic-macros -Wshadow"
+    CFLAGS="-O2 -Wextra -Wfatal-errors -Werror -Wall -Wno-long-long -Wno-variadic-macros -Wshadow"
     CXXFLAGS="-Weffc++ "
     CXXFLAGS+=$CFLAGS
 fi
@@ -272,7 +278,6 @@ py/scenic/test/Makefile
 py/scripts/Makefile
 src/util/Makefile
 src/gutil/Makefile
-src/shared_video/Makefile
 src/vumeter/Makefile
 src/vumeter/test/Makefile
 src/caps/Makefile

@@ -107,8 +107,8 @@ main (int argc, char **argv)
   GtkWidget *vumeters[NUM_CHANNELS];
   GtkWidget *hbox;
   GstBus *bus;
-  gint watch_id;
-  gboolean long_test = FALSE;
+  /* gint watch_id; */
+  /* gboolean long_test = FALSE; */
   GdkNativeWindow socket_id;
   GstElement *pipeline;
   GstElement *source;
@@ -128,8 +128,8 @@ main (int argc, char **argv)
       socket_id = 0;
   else
       socket_id = atol(argv[1]);
-  if (argc == 3)
-      long_test = TRUE;
+  /* if (argc == 3) */
+  /*     long_test = TRUE; */
 
   gtk_init (&argc, &argv);
   gst_init (&argc, &argv);
@@ -174,7 +174,7 @@ main (int argc, char **argv)
   gst_element_link_many (source, capsfilter, level, sink, NULL);
 
   bus = gst_element_get_bus (pipeline);
-  watch_id = gst_bus_add_watch (bus, message_handler, vumeters);
+  /*watch_id =*/ gst_bus_add_watch (bus, message_handler, vumeters);
   gst_element_set_state (pipeline, GST_STATE_PLAYING);
 
   /* show window and run main loop */

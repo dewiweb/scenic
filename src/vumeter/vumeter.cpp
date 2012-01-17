@@ -280,14 +280,10 @@ gtk_vumeter_paint (GtkWidget * widget, cairo_t *cr)
 static void
 gtk_vumeter_destroy (GtkObject * object)
 {
-    GtkVumeter *vumeter;
-    GtkVumeterClass *klass;
-
     g_return_if_fail (object != NULL);
     g_return_if_fail (GTK_IS_VUMETER (object));
 
-    vumeter = GTK_VUMETER (object);
-
+    GtkVumeterClass *klass;
     klass = static_cast<GtkVumeterClass*>(gtk_type_class (gtk_widget_get_type ()));
 
     if (GTK_OBJECT_CLASS (klass)->destroy) {
