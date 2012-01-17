@@ -212,10 +212,10 @@ AS_IF([! $PYTHON $GST_CHECK], [AC_MSG_ERROR([Not all gstreamer plugins installed
 #AM_GST_ELEMENT_CHECK(["xvimagesink"], [AC_MSG_NOTICE([OK])],  [AC_MSG_ERROR([Requires xvimagesink])])
 CFLAGS="-O2"
 CXXFLAGS=$CFLAGS
-
+dnl -std=c99 -pedantic  XXX commas at end of enumation list are not C++-OK
 if test "x${enable_debug}" = "xyes" ; then
     AC_DEFINE(CONFIG_DEBUG_LOCAL,[],[Debug define from configure])
-    CFLAGS="-O2 -Wextra -pedantic -Wfatal-errors -Werror -Wall -Wno-long-long -Wno-variadic-macros -Wshadow"
+    CFLAGS="-O2 -Wextra -Wfatal-errors -Werror -Wall -Wno-long-long -Wno-variadic-macros -Wshadow"
     CXXFLAGS="-Weffc++ "
     CXXFLAGS+=$CFLAGS
 fi
