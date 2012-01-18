@@ -1,6 +1,7 @@
-
 #include <gst/gst.h>
-//#include <glib.h>
+#include <signal.h>
+
+GstElement *pipeline;
 
 
 static gboolean
@@ -37,13 +38,27 @@ bus_call (GstBus     *bus,
     return TRUE;
 }
 
+void
+leave(int sig) {
+    g_print ("Returned, stopping playback\n");
+    gst_element_set_state (pipeline, GST_STATE_NULL);
+
+    g_print ("Deleting pipeline\n");
+    gst_object_unref (GST_OBJECT (pipeline));
+
+    exit(sig);
+}
+
 
 int
 main (int   argc,
       char *argv[])
 {
+
+    (void) signal(SIGINT,leave);
+
     GMainLoop *loop;
-    GstElement *pipeline, *source, *deserializer, *wdisplay;
+    GstElement *source, *deserializer, *wdisplay;
     GstBus *bus;
 
     if (argc != 2) {
