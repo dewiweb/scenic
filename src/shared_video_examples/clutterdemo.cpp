@@ -12,6 +12,8 @@ size_change (ClutterTexture *texture,
   gfloat new_x, new_y, new_width, new_height;
   gfloat stage_width, stage_height;
 
+  g_print("size changed %d, %d\n", width,height);
+
   stage = clutter_actor_get_stage (CLUTTER_ACTOR (texture));
   if (stage == NULL)
     return;
@@ -77,8 +79,8 @@ main (int argc, char *argv[])
    * efficient/corrent playback onto the texture (which sucks a bit)
   */
   texture = (ClutterActor*) g_object_new (CLUTTER_TYPE_TEXTURE,
-			  "disable-slicing", TRUE,
-			  NULL);
+					  "disable-slicing", TRUE,
+					  NULL);
 
   g_signal_connect (CLUTTER_TEXTURE (texture),
 		    "size-change",

@@ -220,16 +220,16 @@ main (int   argc,
     }
 
     /*specifying video format*/
-    /* GstCaps *videocaps; */
-    /* videocaps = gst_caps_new_simple ("video/x-raw-yuv", */
-    /* 				     "format", GST_TYPE_FOURCC, GST_MAKE_FOURCC ('I', '4', '2', '0'), */
-    /* 				     "framerate", GST_TYPE_FRACTION, 30, 1, */
-    /* 				     "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1, */
-    /* 				     "width", G_TYPE_INT, 600, */
-    /* 				     "height", G_TYPE_INT, 400, */
-    /* 				     /\* "width", G_TYPE_INT, 1920, *\/ */
-    /* 				     /\* "height", G_TYPE_INT, 1080, *\/ */
-    /* 				     NULL); */
+     /* GstCaps *videocaps;  */
+     /* videocaps = gst_caps_new_simple ("video/x-raw-yuv",  */
+     /* 				     "format", GST_TYPE_FOURCC, GST_MAKE_FOURCC ('I', '4', '2', '0'),  */
+     /* 				     "framerate", GST_TYPE_FRACTION, 30, 1,  */
+     /* 				     "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1,  */
+     /* 				     /\* "width", G_TYPE_INT, 600,  *\/ */
+     /* 				     /\* "height", G_TYPE_INT, 400,  *\/ */
+     /* 				      "width", G_TYPE_INT, 1920,   */
+     /* 				      "height", G_TYPE_INT, 1080,   */
+     /* 				     NULL);  */
 
     /* we add a message handler */
     GstBus *bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
@@ -239,7 +239,8 @@ main (int   argc,
     /* we add all elements into the pipeline */
     gst_bin_add_many (GST_BIN (pipeline),
 		      //source, 
-		      camsource, timeoverlay, tee, qserial, qlocalxv, imgsink, serializer, shmsink, NULL);
+		      camsource, 
+		      timeoverlay, tee, qserial, qlocalxv, imgsink, serializer, shmsink, NULL);
  
     /* we link the elements together */
     //gst_element_link_filtered (source, timeoverlay,videocaps);
