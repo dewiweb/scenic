@@ -166,10 +166,12 @@ def _parse_milhouse_dc_cameras(text):
         line = line.strip()
         #print(line)
         if line.startswith("DC1394 Camera"):
-            name = " ".join(line.split()[3:])
+            card = " ".join(line.split()[3:])
+            name = " ".join(line.split()[1:3])
             current_dc_device = name
             dc_devices[name] = {
                 "name" : name,
+                "card" : card,
                 "sizes" : [],
                 "pmodes" : [],
                 "frame_rates" : [],
