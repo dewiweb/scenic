@@ -1,3 +1,4 @@
+//WARNING: this example is outdated, it is working but does not implement hot connection/deconnection
 
 #include <stdlib.h>
 #include <clutter-gst/clutter-gst.h>
