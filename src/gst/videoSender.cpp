@@ -77,10 +77,26 @@ void VideoSender::createCodec(Pipeline &pipeline)
     int framerateIndex = 0;
     while (not linked)
     {
-        try 
-        {
-            gstlinkable::link(*source_, *encoder_);
-            linked = true;
+      try 
+	{
+	  tee_ = pipeline.makeElement("tee", NULL);
+	  // localpreview_ = pipeline.makeElement("xvimagesink", NULL);
+	  // g_object_set (G_OBJECT (localpreview_), "sync", FALSE, NULL);
+	  lpqueue_ = pipeline.makeElement("queue", NULL);
+	  std::stringstream strm;
+	  std::string port;
+	  strm << remoteConfig_->port();
+	  strm >> port;
+	  std::string localShmName("dieudj");
+	  localShmName.append(port);
+	  localshvid_.reset(new SharedVideoSink(pipeline, source_->getWidth() , source_->getHeight(),localShmName));
+	  gstlinkable::link(*source_,tee_); 
+	  gstlinkable::link(tee_,  *encoder_);
+	  gstlinkable::link(tee_, lpqueue_);  
+	  //gstlinkable::link(lpqueue_,localpreview_);
+	  gstlinkable::link(lpqueue_,*localshvid_);
+ 
+	  linked = true;
         }
         catch (const gstlinkable::LinkExcept &e)
         {

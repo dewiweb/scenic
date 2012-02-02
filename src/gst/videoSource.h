@@ -35,6 +35,8 @@ class VideoSource
     public:
         virtual ~VideoSource();
         virtual std::string srcCaps(unsigned framerateIndex = 0) const;
+	virtual int getWidth() const;
+	virtual int getHeight() const;
         void setCapsFilter(const std::string &srcCaps);
         virtual _GstElement *srcElement() { return source_; }
 

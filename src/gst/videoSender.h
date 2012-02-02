@@ -27,6 +27,10 @@
 #include "rtpSender.h"
 #include "busMsgHandler.h"
 
+#include "sharedVideoSink.h"
+
+#include "gst/gst.h"
+
 #include "noncopyable.h"
 
 #include <tr1/memory>
@@ -57,6 +61,10 @@ class VideoSender
         std::tr1::shared_ptr<VideoSource> source_;
         std::tr1::shared_ptr<VideoEncoder> encoder_;
         std::tr1::shared_ptr<Pay> payloader_;
+	std::tr1::shared_ptr<VideoSink> localshvid_;
+	GstElement *tee_;
+	GstElement *lpqueue_;
+	//GstElement *localpreview_;
 };
 
 #endif

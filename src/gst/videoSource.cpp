@@ -66,6 +66,16 @@ std::string VideoSource::defaultSrcCaps() const
     return capsStr.str();
 }
 
+int VideoSource::getWidth() const
+{
+  return config_.captureWidth();
+}
+
+int VideoSource::getHeight() const
+{
+  return config_.captureHeight();
+}
+
 std::string VideoSource::srcCaps(unsigned int /*framerateIndex*/) const
 {
     return defaultSrcCaps();
