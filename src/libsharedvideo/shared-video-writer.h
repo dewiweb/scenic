@@ -9,6 +9,7 @@ namespace ScenicSharedVideo
    class Writer {
     public:
        Writer (GstElement *pipeline,GstElement *videoElement,const std::string socketPath);
+       Writer ();
 	~Writer ();
     private:
 	GstElement *qserial_;

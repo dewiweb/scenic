@@ -4,6 +4,8 @@
 
 namespace ScenicSharedVideo 
 { 
+    Writer::Writer ()
+    {}
     
     Writer::Writer (GstElement *pipeline,GstElement *videoElement,const std::string socketPath) : timereset_ (FALSE), timeshift_ (0)
     {
@@ -15,6 +17,10 @@ namespace ScenicSharedVideo
 	if ( !qserial_ || !serializer_ || !shmsink_) {
 	    g_printerr ("Writer: One gstreamer element could not be created.\n");
 	}
+
+	GstState current;
+	gst_element_get_state (pipeline,&current,NULL,GST_CLOCK_TIME_NONE);
+	
 	g_object_set (G_OBJECT (shmsink_), "socket-path", socketPath.c_str(), NULL);
 	g_object_set (G_OBJECT (shmsink_), "shm-size", 94967295, NULL);
 	g_object_set (G_OBJECT (shmsink_), "sync", FALSE, NULL);
@@ -26,15 +32,21 @@ namespace ScenicSharedVideo
 				G_CALLBACK (Writer::reset_time),
 				static_cast<void *>(this));
 	gst_object_unref(qserialPad);
-
+	
 	g_signal_connect (shmsink_, "client-connected", 
 			  G_CALLBACK (Writer::on_client_connected), 
 			  static_cast<void *>(this));
 
-	
-	
 	gst_bin_add_many (GST_BIN (pipeline), qserial_, serializer_, shmsink_, NULL);
 	gst_element_link_many (videoElement, qserial_, serializer_, shmsink_,NULL);
+
+	if(current != GST_STATE_NULL)
+	{
+	    gst_element_set_state (qserial_, current);
+	    gst_element_set_state (serializer_, current);
+	    gst_element_set_state (shmsink_, current);
+	}
+
 
     }
 

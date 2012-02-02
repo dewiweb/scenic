@@ -13,7 +13,7 @@ GstElement *imgsink;
 GstElement *timeoverlay;
 GstElement *camsource;
 
-const std::string *socketName;
+std::string socketName;
 ScenicSharedVideo::Writer *writer;
 
 //clean up pipeline when ctrl-c
@@ -65,13 +65,12 @@ bus_call (GstBus     *bus,
 }
 
 
-// static gboolean  
-// add_shared_video_writer
-// {
-//     // const std::string socketName (argv[1]);
-//     // ScenicSharedVideo::Writer writer (pipeline,tee,socketName);
-//     return FALSE;
-// }
+static gboolean  
+add_shared_video_writer()
+{
+    writer = new ScenicSharedVideo::Writer (pipeline,tee,socketName);
+    return FALSE;
+}
 
 int
 main (int   argc,
@@ -133,8 +132,10 @@ main (int   argc,
 		      timeoverlay, tee, qlocalxv, imgsink, NULL);
 
     //init before set playing state 
-    // *socketName = std::string (argv[1]);
-    // *writer = ScenicSharedVideo::Writer (pipeline,tee,socketName);
+    socketName.append (argv[1]);
+    //writer = new ScenicSharedVideo::Writer (pipeline,tee,socketName);
+
+    g_timeout_add (1000, (GSourceFunc) add_shared_video_writer, NULL);
 
 
     /* we link the elements together */
@@ -151,8 +152,7 @@ main (int   argc,
     gst_element_set_state (pipeline, GST_STATE_PLAYING);
     
 
-    //g_timeout_add (1000, (GSourceFunc) add_shared_video_writer, NULL);
-
+    
 
     /* Iterate */
     g_print ("Running...\n");
