@@ -4,6 +4,9 @@
 #include "shared-video.h"
 
 GstElement *pipeline;
+GstElement *wdisplay;
+GstElement *videomixer;
+
 std::string socketName;
 ScenicSharedVideo::Reader *reader;
 
@@ -12,13 +15,13 @@ bus_call (GstBus     *bus,
           GstMessage *msg,
           gpointer    data)
 {
-    GMainLoop *loop = (GMainLoop *) data;
+    //GMainLoop *loop = (GMainLoop *) data;
 
     switch (GST_MESSAGE_TYPE (msg)) {
 
     case GST_MESSAGE_EOS:
 	g_print ("End of stream\n");
-	g_main_loop_quit (loop);
+	//g_main_loop_quit (loop);
 	break;
 
     case GST_MESSAGE_ERROR: {
@@ -31,8 +34,8 @@ bus_call (GstBus     *bus,
 	g_printerr ("Error nico: %s\n", error->message);
 	g_error_free (error);
 
-	g_print ("Now nulling: \n");
-	gst_element_set_state (pipeline, GST_STATE_NULL);
+	//g_print ("Now nulling: \n");
+	//gst_element_set_state (pipeline, GST_STATE_NULL);
 //	g_main_loop_quit (loop);
 	break;
     }
@@ -53,15 +56,23 @@ leave(int sig) {
     exit(sig);
 }
 
+static gboolean  
+add_shared_video_reader()
+{
+    g_print ("add shared video reader");
+    reader = new ScenicSharedVideo::Reader (pipeline,videomixer,socketName);
+    return FALSE;
+}
+
+
 int
 main (int   argc,
       char *argv[])
 {    
-
+    
     (void) signal(SIGINT,leave);
-
+    
     GMainLoop *loop;
-    GstElement *wdisplay;
     GstBus *bus;
     
     if (argc != 2) {
@@ -80,22 +91,24 @@ main (int   argc,
     gst_bus_add_watch (bus, bus_call, loop);
     gst_object_unref (bus);
 
-    wdisplay = gst_element_factory_make ("xvimagesink", "window-display");
-   if (!pipeline || !wdisplay) {
+    wdisplay   = gst_element_factory_make ("xvimagesink", NULL);
+    videomixer = gst_element_factory_make ("videomixer", NULL);
+    if (!pipeline || !wdisplay) {
 	g_printerr ("One element could not be created. Exiting.\n");
 	return -1;
     }
 
-    gst_bin_add_many (GST_BIN (pipeline), wdisplay, NULL);
-    
+    gst_bin_add_many (GST_BIN (pipeline), videomixer, wdisplay, NULL);
+    gst_element_link (videomixer,wdisplay);
     //the shared video source is created and attached to the pipeline
     //the source with control the pipeline state
     socketName.append (argv[1]);
-    new ScenicSharedVideo::Reader (pipeline,wdisplay,socketName);
+    // new ScenicSharedVideo::Reader (pipeline,wdisplay,socketName);
+    g_timeout_add (1000, (GSourceFunc) add_shared_video_reader, NULL);
 
-   //create the shared memory
+    gst_element_set_state (pipeline, GST_STATE_PLAYING);
 
- /* Iterate */
+    /* Iterate */
     g_print ("Running...\n");
     g_main_loop_run (loop);
 

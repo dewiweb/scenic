@@ -158,7 +158,7 @@ namespace ScenicSharedVideo
 				       TRUE, 
 				       (GstPadBlockCallback) (Writer::switch_to_new_serializer), 
 				       static_cast<void *>(context)))
-	    g_printerr("Error: requesting the pad to be blocked\n");
+	    g_printerr("Error: when requesting the pad to be blocked\n");
 	gst_object_unref (serializerSinkPad);
 	gst_object_unref (padToBlock);
     } 

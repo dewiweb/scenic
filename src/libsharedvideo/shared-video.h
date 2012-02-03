@@ -7,7 +7,6 @@
 
 namespace ScenicSharedVideo
 {
-    //writer could be attached live
    class Writer {
     public:
        Writer (GstElement *pipeline,GstElement *videoElement,const std::string socketPath);
@@ -25,8 +24,6 @@ namespace ScenicSharedVideo
 	static void on_client_connected (GstElement * shmsink, gint num, gpointer user_data); 
     };
 
-
-//reader does not attach live
    class Reader {
    public:
        Reader (GstElement *pipeline,GstElement *sink,const std::string socketPath);
@@ -35,9 +32,16 @@ namespace ScenicSharedVideo
    private:
        GstElement *source_;
        GstElement *deserializer_;
+       GstElement *sink_;
        GFile *shmfile_; 
        GstElement *pipeline_;
        GFileMonitor* dirMonitor_;
+       GstPadTemplate *tmpl_;
+       GstPad *sinkPad_;
+       GstPad *deserialPad_;
+       std::string socketName_; 
+       void attach ();
+       void detach ();
        static void file_system_monitor_change (GFileMonitor *monitor, GFile *file, GFile *other_file, GFileMonitorEvent type, gpointer user_data);
    };
 
