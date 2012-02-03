@@ -1,7 +1,7 @@
 #include <gst/gst.h>
 #include <signal.h>
 #include <string>
-#include "shared-video-writer.h"
+#include "shared-video.h"
 
 
 GstElement *pipeline;

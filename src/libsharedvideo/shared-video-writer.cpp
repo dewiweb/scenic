@@ -1,6 +1,4 @@
-#include <gst/gst.h>
-#include <string>
-#include "shared-video-writer.h"
+#include "shared-video.h"
 
 namespace ScenicSharedVideo 
 { 
