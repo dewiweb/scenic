@@ -7,7 +7,6 @@ namespace ScenicSharedVideo
     
     Writer::Writer (GstElement *pipeline,GstElement *videoElement,const std::string socketPath) : timereset_ (FALSE), timeshift_ (0)
     {
-	
 	qserial_     = gst_element_factory_make ("queue", NULL);
 	serializer_  = gst_element_factory_make ("gdppay",  NULL);
 	shmsink_     = gst_element_factory_make ("shmsink", NULL);
@@ -44,10 +43,7 @@ namespace ScenicSharedVideo
 	    gst_element_set_state (serializer_, current);
 	    gst_element_set_state (shmsink_, current);
 	}
-
-
     }
-
 
     Writer::~Writer (){
     }
@@ -71,7 +67,6 @@ namespace ScenicSharedVideo
 	}
     
 	return TRUE;
-    
     }
 
     void
@@ -82,9 +77,7 @@ namespace ScenicSharedVideo
 	if(blocked)
 	    g_printerr ("Error: pad not unblocked\n");
 	else
-	{
 	    context->timereset_=TRUE;
-	}
     }
 
     void 
@@ -107,16 +100,13 @@ namespace ScenicSharedVideo
 	gst_object_unref (sinkPad);
     
 	GstBin *bin=GST_BIN (GST_ELEMENT_PARENT(context->serializer_));
-	
 
 	//supposed to be PLAYING, possible issue because of not taking care of pending state 
 	GstState current;
 	gst_element_get_state (context->serializer_,&current,NULL,GST_CLOCK_TIME_NONE);
-	//g_print("serializer state: %d \n",current);
 
 	//get rid of the old serializer TODO ensure object has been cleaned up
 	gst_element_set_state (context->serializer_,GST_STATE_NULL);
-
 	//waiting for possible async state change
 	gst_element_get_state (context->serializer_,NULL,NULL,GST_CLOCK_TIME_NONE);
 
@@ -125,7 +115,6 @@ namespace ScenicSharedVideo
 	if(gst_element_set_state (context->serializer_, current) != GST_STATE_CHANGE_SUCCESS) 
 	    g_printerr ("Error: issue changing newSerializer state\n"); 
 	else{ 
-	    //g_print ("changing serializer state\n"); 
 	    gst_bin_add (bin,context->serializer_); 
 	    GstPad *newSinkPad=gst_element_get_static_pad (context->serializer_,"sink"); 
 	    GstPad *newSrcPad=gst_element_get_static_pad (context->serializer_,"src"); 
@@ -138,7 +127,6 @@ namespace ScenicSharedVideo
 	gst_object_unref (sinkPadPeer); 
 
 	//unblocking data stream 
-	//g_print ("setting pad to unblocked\n"); 
 	gst_pad_set_blocked_async (pad, 
 				   FALSE,
 				   (GstPadBlockCallback) (Writer::pad_unblocked),
@@ -149,8 +137,6 @@ namespace ScenicSharedVideo
     Writer::on_client_connected (GstElement * shmsink, gint num, gpointer user_data) 
     { 
 	Writer *context = static_cast<Writer*>(user_data);
-	
-	//g_print ("on client connected %d\n",num); 
 	GstPad *serializerSinkPad=gst_element_get_static_pad(context->serializer_,"sink");
 	GstPad *padToBlock = gst_pad_get_peer(serializerSinkPad);
 	

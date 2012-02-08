@@ -4,7 +4,7 @@
 #include "shared-video.h"
 
 GstElement *pipeline;
-GstElement *wdisplay;
+GstElement *shmDisplay;
 GstElement *videomixer;
 
 std::string socketName;
@@ -31,7 +31,7 @@ bus_call (GstBus     *bus,
 	gst_message_parse_error (msg, &error, &debug);
 	g_free (debug);
 
-	g_printerr ("Error nico: %s\n", error->message);
+	//g_printerr ("Error nico: %s\n", error->message);
 	g_error_free (error);
 
 	//g_print ("Now nulling: \n");
@@ -91,19 +91,27 @@ main (int   argc,
     gst_bus_add_watch (bus, bus_call, loop);
     gst_object_unref (bus);
 
-    wdisplay   = gst_element_factory_make ("xvimagesink", NULL);
+    GstElement *localVideoSource = gst_element_factory_make ("videotestsrc", NULL);
+    GstElement *localDisplay = gst_element_factory_make ("xvimagesink", NULL);
+
+    shmDisplay   = gst_element_factory_make ("xvimagesink", NULL);
+    g_object_set (G_OBJECT (shmDisplay), "sync", FALSE, NULL);
+    g_object_set (G_OBJECT (localDisplay), "sync", FALSE, NULL);
     videomixer = gst_element_factory_make ("videomixer", NULL);
-    if (!pipeline || !wdisplay) {
+    if (!pipeline || !shmDisplay || !localVideoSource || !localDisplay) {
 	g_printerr ("One element could not be created. Exiting.\n");
 	return -1;
     }
 
-    gst_bin_add_many (GST_BIN (pipeline), videomixer, wdisplay, NULL);
-    gst_element_link (videomixer,wdisplay);
+    gst_bin_add_many (GST_BIN (pipeline), videomixer, shmDisplay, localVideoSource, localDisplay, NULL);
+    gst_element_link (videomixer,shmDisplay);
+    
+    gst_element_link (localVideoSource, localDisplay);
+
     //the shared video source is created and attached to the pipeline
     //the source with control the pipeline state
     socketName.append (argv[1]);
-    // new ScenicSharedVideo::Reader (pipeline,wdisplay,socketName);
+    // new ScenicSharedVideo::Reader (pipeline,shmDisplay,socketName);
     g_timeout_add (1000, (GSourceFunc) add_shared_video_reader, NULL);
 
     gst_element_set_state (pipeline, GST_STATE_PLAYING);

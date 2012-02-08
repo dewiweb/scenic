@@ -4,7 +4,6 @@
 #include <gst/gst.h>
 #include <gio/gio.h>
 
-
 namespace ScenicSharedVideo
 {
    class Writer {
@@ -30,22 +29,26 @@ namespace ScenicSharedVideo
        Reader ();
        ~Reader ();
    private:
+       //pipeline elements
+       GstElement *pipeline_;
        GstElement *source_;
        GstElement *deserializer_;
        GstElement *sink_;
-       GFile *shmfile_; 
-       GstElement *pipeline_;
-       GFileMonitor* dirMonitor_;
-       GstPadTemplate *tmpl_;
        GstPad *sinkPad_;
        GstPad *deserialPad_;
+       //monitoring the shm file
+       GFile *shmfile_; 
+       GFileMonitor* dirMonitor_;
        std::string socketName_; 
+       //dynamic linking
        void attach ();
        void detach ();
+       //gcallbacks
+       static gboolean clean_source (gpointer user_data);
+       static GstBusSyncReply message_handler (GstBus *bus, GstMessage *msg, gpointer user_data);
        static void file_system_monitor_change (GFileMonitor *monitor, GFile *file, GFile *other_file, GFileMonitorEvent type, gpointer user_data);
    };
 
-}
-
+}      //end namespace  ScenicSharedVideo
 #endif //_SCENIC_SHARED_VIDEO_H_
 
