@@ -25,9 +25,11 @@ namespace ScenicSharedVideo
 
    class Reader {
    public:
-       Reader (GstElement *pipeline,GstElement *sink,const std::string socketPath);
+       Reader (const std::string socketPath, void(*on_first_video_data)( Reader *));
        Reader ();
        ~Reader ();
+       //where to push the video data
+       void setSink (GstElement *Pipeline, GstElement *sink); 
    private:
        //pipeline elements
        GstElement *pipeline_;
@@ -39,7 +41,11 @@ namespace ScenicSharedVideo
        //monitoring the shm file
        GFile *shmfile_; 
        GFileMonitor* dirMonitor_;
-       std::string socketName_; 
+       std::string socketName_;
+       //
+       void (*on_first_video_data_)(Reader *);
+       //state boolean
+       gboolean initialized_; //the shared video has been attached once
        //dynamic linking
        void attach ();
        void detach ();

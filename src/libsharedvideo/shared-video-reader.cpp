@@ -5,11 +5,11 @@ namespace ScenicSharedVideo
     Reader::Reader ()
     {}
 
-    Reader::Reader (GstElement *pipeline,GstElement *sink,const std::string socketName) 	
+    Reader::Reader (const std::string socketName, void(*on_first_video_data)( Reader *)) 	
     {
-	pipeline_     = pipeline;
-	sink_         = sink;
-	
+
+	initialized_ = FALSE;
+	on_first_video_data_ = on_first_video_data;
 	socketName_.append(socketName);
 
         //monitoring the shared memory file
@@ -19,23 +19,34 @@ namespace ScenicSharedVideo
 	}
 	
 	if (g_file_query_exists (shmfile_,NULL)){
+	    initialized_ = TRUE;
+	    on_first_video_data_ (this);
 	    Reader::attach ();
 	}
 
-	GstBus *bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
-	gst_bus_set_sync_handler (bus, message_handler, static_cast<void *>(this));
-	gst_object_unref (bus);
-	
 	GFile *dir = g_file_get_parent (shmfile_);
 	dirMonitor_ = g_file_monitor_directory (dir, G_FILE_MONITOR_NONE, NULL, NULL); 
 	g_object_unref(dir);
 	g_signal_connect (dirMonitor_, "changed", G_CALLBACK (Reader::file_system_monitor_change), static_cast<void *>(this)); 
     }
 
+    void
+    Reader::setSink (GstElement *pipeline, GstElement *sink)
+    {
+	sink_         = sink;
+	pipeline_     = pipeline;
+
+	GstBus *bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
+	gst_bus_set_sync_handler (bus, message_handler, static_cast<void *>(this));
+	gst_object_unref (bus);
+    }
+    
     Reader::~Reader (){
 	g_object_unref(shmfile_);
 	g_object_unref(dirMonitor_);
     }
+
+    
 
     void 
     Reader::attach ()
@@ -66,7 +77,7 @@ namespace ScenicSharedVideo
 	gst_element_unlink (source_, deserializer_);
 	gst_pad_unlink (deserialPad_,sinkPad_);
 	gst_object_unref (deserialPad_);
-	gst_element_release_request_pad(sink_,sinkPad_);
+	gst_element_release_request_pad (sink_,sinkPad_);
 	//ask for element cleaning in the main thread
 	g_idle_add ((GSourceFunc) clean_source,static_cast<void *>(this));
     }
@@ -77,9 +88,9 @@ namespace ScenicSharedVideo
 	Reader *context = static_cast<Reader*>(user_data);
 	gst_object_unref(context->sinkPad_);
 	gst_element_set_state (context->deserializer_, GST_STATE_NULL);
+	gst_bin_remove (GST_BIN (context->pipeline_),context->deserializer_);
 	gst_element_set_state (context->source_, GST_STATE_NULL);
 	gst_bin_remove (GST_BIN (context->pipeline_),context->source_); 
-	gst_bin_remove (GST_BIN (context->pipeline_),context->deserializer_);
 	return FALSE;
     }
 
@@ -95,8 +106,9 @@ namespace ScenicSharedVideo
 	    Reader *context = static_cast<Reader*>(user_data);
 	    gst_message_parse_error (msg, &error, &debug);
 	    g_free (debug);
-	    if (error->code == GST_RESOURCE_ERROR_READ && g_strcmp0 (GST_ELEMENT_NAME(context->source_),GST_OBJECT_NAME(msg->src)) == 0 ){
-		context->detach ();
+	    if (g_strcmp0 (GST_ELEMENT_NAME(context->source_),GST_OBJECT_NAME(msg->src)) == 0 ){
+		if (error->code == GST_RESOURCE_ERROR_READ)
+		    context->detach ();
 		g_error_free (error);
 		return GST_BUS_DROP;
 	    }
@@ -123,6 +135,11 @@ namespace ScenicSharedVideo
 	{
 	case G_FILE_MONITOR_EVENT_CREATED:
 	    if (g_file_equal (file,context->shmfile_)) {
+		if (! context->initialized_)
+		{
+		    context->initialized_ = TRUE;
+		    context->on_first_video_data_ (context);
+		}
 		context->attach();
 	    }	  
 	    break;

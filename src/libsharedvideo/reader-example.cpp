@@ -5,7 +5,7 @@
 
 GstElement *pipeline;
 GstElement *shmDisplay;
-GstElement *videomixer;
+GstElement *funnel;
 
 std::string socketName;
 ScenicSharedVideo::Reader *reader;
@@ -15,7 +15,7 @@ bus_call (GstBus     *bus,
           GstMessage *msg,
           gpointer    data)
 {
-    //GMainLoop *loop = (GMainLoop *) data;
+    GMainLoop *loop = (GMainLoop *) data;
 
     switch (GST_MESSAGE_TYPE (msg)) {
 
@@ -31,12 +31,12 @@ bus_call (GstBus     *bus,
 	gst_message_parse_error (msg, &error, &debug);
 	g_free (debug);
 
-	//g_printerr ("Error nico: %s\n", error->message);
+	g_printerr ("Error: %s\n", error->message);
 	g_error_free (error);
 
-	//g_print ("Now nulling: \n");
-	//gst_element_set_state (pipeline, GST_STATE_NULL);
-//	g_main_loop_quit (loop);
+	g_print ("Now nulling: \n");
+	gst_element_set_state (pipeline, GST_STATE_NULL);
+	g_main_loop_quit (loop);
 	break;
     }
     default:
@@ -56,11 +56,36 @@ leave(int sig) {
     exit(sig);
 }
 
+
+void
+on_first_video_data (ScenicSharedVideo::Reader *context)
+{
+    g_print ("creating element to display the shared video \n");
+    shmDisplay   = gst_element_factory_make ("xvimagesink", NULL);
+    //in order to be dynamic, the shared video is linking to an 
+    //element accepting request pad (as funnel of videomixer)
+    funnel       = gst_element_factory_make ("funnel", NULL);
+    g_object_set (G_OBJECT (shmDisplay), "sync", FALSE, NULL);
+    
+    if (!shmDisplay || !funnel) {
+	g_printerr ("One element could not be created. \n");
+    }
+
+    //element must have the same state as the pipeline
+    gst_element_set_state (shmDisplay, GST_STATE_PLAYING);
+    gst_element_set_state (funnel, GST_STATE_PLAYING);
+    gst_bin_add_many (GST_BIN (pipeline), funnel, shmDisplay, NULL);
+    gst_element_link (funnel, shmDisplay);
+    
+    //now tells the shared video reader where to write the data
+    context->setSink (pipeline, funnel);
+}
+
 static gboolean  
 add_shared_video_reader()
 {
     g_print ("add shared video reader");
-    reader = new ScenicSharedVideo::Reader (pipeline,videomixer,socketName);
+    reader = new ScenicSharedVideo::Reader (socketName, &on_first_video_data);
     return FALSE;
 }
 
@@ -79,13 +104,15 @@ main (int   argc,
 	g_printerr ("Usage: %s <socket-path>\n", argv[0]);
 	return -1;
     }
+    socketName.append (argv[1]);
+    
     
     /* Initialisation */
     gst_init (&argc, &argv);
     loop = g_main_loop_new (NULL, FALSE);
 
     /* Create gstreamer elements */
-    pipeline   = gst_pipeline_new ("shared-video-reader");
+    pipeline   = gst_pipeline_new (NULL);
     /* we add a message handler */
     bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
     gst_bus_add_watch (bus, bus_call, loop);
@@ -94,24 +121,16 @@ main (int   argc,
     GstElement *localVideoSource = gst_element_factory_make ("videotestsrc", NULL);
     GstElement *localDisplay = gst_element_factory_make ("xvimagesink", NULL);
 
-    shmDisplay   = gst_element_factory_make ("xvimagesink", NULL);
-    g_object_set (G_OBJECT (shmDisplay), "sync", FALSE, NULL);
-    g_object_set (G_OBJECT (localDisplay), "sync", FALSE, NULL);
-    videomixer = gst_element_factory_make ("videomixer", NULL);
-    if (!pipeline || !shmDisplay || !localVideoSource || !localDisplay) {
+    if (!pipeline || !localVideoSource || !localDisplay) {
 	g_printerr ("One element could not be created. Exiting.\n");
 	return -1;
     }
 
-    gst_bin_add_many (GST_BIN (pipeline), videomixer, shmDisplay, localVideoSource, localDisplay, NULL);
-    gst_element_link (videomixer,shmDisplay);
-    
+    gst_bin_add_many (GST_BIN (pipeline), localVideoSource, localDisplay, NULL);
     gst_element_link (localVideoSource, localDisplay);
 
-    //the shared video source is created and attached to the pipeline
-    //the source with control the pipeline state
-    socketName.append (argv[1]);
-    // new ScenicSharedVideo::Reader (pipeline,shmDisplay,socketName);
+
+    // new ScenicSharedVideo::Reader (socketName,&on_first_video_data);
     g_timeout_add (1000, (GSourceFunc) add_shared_video_reader, NULL);
 
     gst_element_set_state (pipeline, GST_STATE_PLAYING);
