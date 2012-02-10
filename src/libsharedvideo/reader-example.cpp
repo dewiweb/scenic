@@ -46,6 +46,7 @@ bus_call (GstBus     *bus,
     return TRUE;
 }
 
+
 void
 leave(int sig) {
     g_print ("Returned, stopping playback\n");
@@ -58,7 +59,7 @@ leave(int sig) {
 
 
 void
-on_first_video_data (ScenicSharedVideo::Reader *context)
+on_first_video_data (ScenicSharedVideo::Reader *context, void *user_data)
 {
     g_print ("creating element to display the shared video \n");
     shmDisplay   = gst_element_factory_make ("xvimagesink", NULL);
@@ -85,7 +86,7 @@ static gboolean
 add_shared_video_reader()
 {
     g_print ("add shared video reader");
-    reader = new ScenicSharedVideo::Reader (socketName, &on_first_video_data);
+    reader = new ScenicSharedVideo::Reader (socketName, &on_first_video_data,NULL);
     return FALSE;
 }
 

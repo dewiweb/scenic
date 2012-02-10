@@ -5,11 +5,11 @@ namespace ScenicSharedVideo
     Reader::Reader ()
     {}
 
-    Reader::Reader (const std::string socketName, void(*on_first_video_data)( Reader *)) 	
+    Reader::Reader (const std::string socketName, void(*on_first_video_data)(Reader *, void *),void *user_data) 	
     {
-
 	initialized_ = FALSE;
 	on_first_video_data_ = on_first_video_data;
+	userData_ = user_data;
 	socketName_.append(socketName);
 
         //monitoring the shared memory file
@@ -20,7 +20,7 @@ namespace ScenicSharedVideo
 	
 	if (g_file_query_exists (shmfile_,NULL)){
 	    initialized_ = TRUE;
-	    on_first_video_data_ (this);
+	    on_first_video_data_ (this,userData_);
 	    Reader::attach ();
 	}
 
@@ -138,7 +138,7 @@ namespace ScenicSharedVideo
 		if (! context->initialized_)
 		{
 		    context->initialized_ = TRUE;
-		    context->on_first_video_data_ (context);
+		    context->on_first_video_data_ (context,context->userData_);
 		}
 		context->attach();
 	    }	  
