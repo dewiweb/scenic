@@ -36,7 +36,11 @@
 #include "shared-video.h"
 #include <gst/app/gstappsink.h>
 
-#include <string.h> //memcpy
+// #include <string.h> //memcpy
+// gpointer raw_buffer=NULL;
+// int raw_buffer_size=0;
+
+GstBuffer *last_buffer_ = NULL;
 
 osg::Node* createFilterWall(osg::BoundingBox& bb,osg::Texture2D* texture)
 {
@@ -150,9 +154,7 @@ bus_call (GstBus     *bus,
 static void
 on_new_buffer_from_source (GstElement * elt, gpointer user_data)
 {
-  GstBuffer *app_buffer, *buffer;
-  GstElement *source;
-
+  GstBuffer *buffer;
   osg::Texture2D* texture = (osg::Texture2D*) user_data;
 
   buffer = gst_app_sink_pull_buffer (GST_APP_SINK (elt));
@@ -164,10 +166,6 @@ on_new_buffer_from_source (GstElement * elt, gpointer user_data)
   int curWidth = g_value_get_int (gst_structure_get_value (imgProp,"width"));
   int curHeight = g_value_get_int (gst_structure_get_value (imgProp,"height"));
 
-  //does not work
-  // if (texture->getTextureWidth () != curWidth) texture->setTextureWidth (curWidth);
-  // if (texture->getTextureHeight () != curHeight) texture->setTextureHeight (curHeight);
-
   osg::Image *img = new osg::Image;
   img->setOrigin(osg::Image::TOP_LEFT); 
   img->setImage(curWidth, 
@@ -176,16 +174,15 @@ on_new_buffer_from_source (GstElement * elt, gpointer user_data)
    		GL_RGB, 
    		GL_RGB, 
    		GL_UNSIGNED_SHORT_5_6_5, 
-//   		raw_buffer, 
 		GST_BUFFER_DATA (buffer),
    		osg::Image::NO_DELETE, 
    		1);
-  
+
   texture->setImage(img);
 
-  /* we don't need the appsink buffer anymore */
-  //gst_buffer_unref (buffer);
-  
+   if (last_buffer_ != NULL)  
+       gst_buffer_unref (last_buffer_);
+  last_buffer_ = buffer;
 }
 
 
@@ -275,6 +272,9 @@ int main(int , char **)
     
     osg::Texture2D* texture = new osg::Texture2D;
     texture->setDataVariance(osg::Object::DYNAMIC);
+    // texture->setTextureWidth (924);
+    // texture->setTextureHeight (576);
+    texture->setResizeNonPowerOfTwoHint(false);
 
     // add model to viewer.
     viewer.setSceneData( createModel(texture) );
