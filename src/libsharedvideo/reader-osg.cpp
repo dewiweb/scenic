@@ -272,8 +272,6 @@ int main(int , char **)
     
     osg::Texture2D* texture = new osg::Texture2D;
     texture->setDataVariance(osg::Object::DYNAMIC);
-    // texture->setTextureWidth (924);
-    // texture->setTextureHeight (576);
     texture->setResizeNonPowerOfTwoHint(false);
 
     // add model to viewer.
