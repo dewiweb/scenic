@@ -1,4 +1,4 @@
-SUBDIRS = src po data py doc utils man
+SUBDIRS = shmdata src po data py doc utils man
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = \
     RELEASE \
@@ -6,9 +6,9 @@ EXTRA_DIST = \
     README \
     autogen.sh \
     configure.ac \
-    scenic.pc.in \
-    scenic.pc
+    shmdata.pc.in \
+    shmdata.pc
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = scenic.pc
+pkgconfig_DATA = shmdata.pc
 

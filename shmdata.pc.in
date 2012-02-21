@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: shmdata
+Description: shared memory for data streams
+URL: @PACKAGE_URL@
+Version: @PACKAGE_VERSION@
+Requires.private: @GIO_LIBS@ 
+Libs: -L${libdir} -lshmdata-@SHMDATA_API_VERSION@ @BOOST_THREAD_LIB@ @GST_LIBS@ @GSTAPP_LIBS@ @CLUTTER_LIBS@ @OSG_LIBS@
+Cflags: -I${includedir}/scenic @GST_CFLAGS@ @GSTAPP_CFLAGS@ @GIO_CFLAGS@ @CLUTTER_CFLAGS@ @OSG_CFLAGS@
+

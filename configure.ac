@@ -1,15 +1,89 @@
+# Process this file with autoconf to produce a configure script.
+
+# scenic package version number, (as distinct from shared library version)
+# An odd micro number indicates in-progress development from Git
+# An even micro number indicates a released version
+#
+# Making a point release:
+# - increase scenic_micro_version to the next even number
+# - increase scenic_interface_age to the next even number
+#   UNLESS there was an API addition/deprecation, in which case
+#   - set scenic_interface_age to 0
+# After the release:
+# - increase scenic_micro_version to the next odd number
+# - increase scenic_interface_version to the next odd number
+m4_define([scenic_major_version], [0])
+m4_define([scenic_minor_version], [7])
+m4_define([scenic_micro_version], [1])
+
+m4_define([scenic_release_status],
+          [m4_if(m4_eval(scenic_micro_version % 2), [1], [git],
+                 [m4_if(m4_eval(scenic_minor_version % 2), [1], [snapshot],
+                                                                 [release])])])
+
+m4_define([scenic_version], [scenic_major_version.scenic_minor_version.scenic_micro_version])
+
+# change this only when breaking the API
+m4_define([shmdata_api_version], [0.7])
+
+# increase the interface age by 1 for each release; if the API changes,
+# set to 0. interface_age and binary_age are used to create the soname
+# of the shared object:
+#
+#  (<minor> * 100 + <micro>) - <interface_age>
+#
+# this allows using the same soname for different micro-releases in case
+# no API was added or deprecated. for instance:
+#
+#   shmdata 1.2.0  -> 100 * 2 + 0  = 200, interface age = 0 -> 200
+#   shmdata 1.2.2  -> 100 * 2 + 2  = 202, interface age = 2 -> 200
+#   shmdata 1.2.4  -> 100 * 2 + 4  = 204, interface age = 4 -> 200
+#   [ API addition, deprecation ]
+#   shmdata 1.2.6  -> 100 * 2 + 6  = 206, interface age = 0 -> 206
+#   shmdata 1.2.8  -> 100 * 2 + 8  = 208, interface age = 2 -> 206
+#   shmdata 1.2.10 -> 100 * 2 + 10 = 210, interface age = 4 -> 206
+#   ...
+#
+m4_define([shmdata_interface_age], [0])
+m4_define([shmdata_binary_age], [m4_eval(100 * scenic_minor_version + scenic_micro_version)])
+
+AC_PREREQ([2.63])
+AC_INIT([scenic],
+        [scenic_version],
+        [http://code.sat.qc.ca/trac/scenic/wiki/BugReport],
+        [scenic],
+        [http://code.sat.qc.ca/trac/scenic])
+AC_CONFIG_MACRO_DIR([m4])
+AC_MSG_NOTICE([Configuring scenic])
+
+AC_SUBST([SCENIC_MAJOR_VERSION],  [scenic_major_version])
+AC_SUBST([SCENIC_MINOR_VERSION],  [scenic_minor_version])
+AC_SUBST([SCENIC_MICRO_VERSION],  [scenic_micro_version])
+AC_SUBST([SCENIC_VERSION],        [scenic_version])
+AC_SUBST([SHMDATA_API_VERSION],    [scenic_api_version])
+AC_SUBST([SHMDATA_API_VERSION_AM], [$SCENIC_MAJOR_VERSION\_0])
+AC_SUBST([SCENIC_RELEASE_STATUS], [scenic_release_status])
+
+m4_define([lt_current],  [m4_eval(100 * scenic_minor_version + scenic_micro_version - shmdata_interface_age)])
+m4_define([lt_revision], [shmdata_interface_age])
+m4_define([lt_age],      [m4_eval(shmdata_binary_age - shmdata_interface_age)])
+SCENIC_LT_CURRENT=lt_current
+SCENIC_LT_REV=lt_revision
+SCENIC_LT_AGE=lt_age
+SCENIC_LT_VERSION="$SHMDATA_LT_CURRENT:$SHMDATA_LT_REV:$SHMDATA_LT_AGE"
+AC_SUBST([SCENIC_LT_VERSION], "$SHMDATA_LT_VERSION")
+SCENIC_LT_LDFLAGS="-version-info $SHMDATA_LT_VERSION"
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ(2.60)
 # version should always be .1 greater than last tag, unless this is a tag
-AC_INIT(SCENIC, [0.7.1], [http://code.sat.qc.ca/trac/scenic/wiki/BugReport], [scenic], [http://code.sat.qc.ca/trac/scenic])
-AC_CONFIG_HEADER([src/config.h])
 AC_CONFIG_SRCDIR([src/main/milhouse.cpp])
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE([-Wno-portability])
+AM_INIT_AUTOMAKE([subdir-objects -Wno-portability])
+AC_CONFIG_HEADERS([src/config.h])
+AC_CANONICAL_HOST # fills $host variable
 
 dnl we use this to avoid causing normal builds to regenerate autotools if
 dnl "too old" which might happen accidentally, especially when using a VCS
@@ -237,6 +311,7 @@ AC_CONFIG_FILES([py/scripts/midistream], [chmod +x py/scripts/midistream])
 # TODO: indent the following list of files:
 AC_CONFIG_FILES([
 Makefile
+shmdata/Makefile
 data/Makefile
 data/glade/Makefile
 data/pixmaps/Makefile
@@ -288,7 +363,8 @@ src/rtsp/Makefile
 src/rtsp/examples/Makefile
 src/main/Makefile
 src/main/test/Makefile
-scenic.pc
+shmdata-${SHMDATA_API_VERSION}.pc:shmdata.pc.in
 ])
 
 AC_OUTPUT
+
