@@ -7,7 +7,7 @@ Name: shmdata
 Description: shared memory for data streams
 URL: @PACKAGE_URL@
 Version: @PACKAGE_VERSION@
-Requires.private: @GIO_LIBS@ 
-Libs: -L${libdir} -lshmdata-@SCENIC_API_VERSION@ @BOOST_THREAD_LIB@ @GST_LIBS@ @GSTAPP_LIBS@ @CLUTTER_LIBS@ @OSG_LIBS@
-Cflags: -I${includedir}/scenic @GST_CFLAGS@ @GSTAPP_CFLAGS@ @GIO_CFLAGS@ @CLUTTER_CFLAGS@ @OSG_CFLAGS@
+Requires.private:
+Libs: -L${libdir} -lshmdata-@SCENIC_API_VERSION@ @BOOST_THREAD_LIB@ @GST_LIBS@ @GSTAPP_LIBS@
+Cflags: -I${includedir}/shmdata-@SCENIC_API_VERSION@ @GST_CFLAGS@ @GSTAPP_CFLAGS@
 
