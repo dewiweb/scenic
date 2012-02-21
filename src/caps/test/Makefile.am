@@ -5,11 +5,7 @@ check_PROGRAMS = \
     caps_test
 
 caps_test_SOURCES = \
-    caps_test.cpp \
-    $(top_srcdir)/src/caps/caps_server.h \
-    $(top_srcdir)/src/caps/caps_server.cpp \
-    $(top_srcdir)/src/caps/caps_client.h \
-    $(top_srcdir)/src/caps/caps_client.cpp
+    caps_test.cpp
 
 caps_test_LDADD = \
     $(top_builddir)/src/caps/libcaps.la \

@@ -78,7 +78,7 @@ SCENIC_LT_LDFLAGS="-version-info $SCENIC_LT_VERSION"
 AC_CONFIG_SRCDIR([src/main/milhouse.cpp])
 
 AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE([subdir-objects -Wno-portability])
+AM_INIT_AUTOMAKE([-Wno-portability])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CANONICAL_HOST # fills $host variable
 

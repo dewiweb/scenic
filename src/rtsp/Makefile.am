@@ -1,6 +1,7 @@
 SUBDIRS = examples
 
 noinst_LTLIBRARIES = librtsp.la
+
 librtsp_la_SOURCES = \
     gst-rtsp-cam-media-factory.c \
     rtsp_server.cpp \
@@ -29,4 +30,5 @@ librtsp_la_LIBADD = \
     $(GST_RTSP_SERVER_LIBS) \
     $(GTK_LIBS) \
     $(top_builddir)/src/devices/libdevices.la
+
 

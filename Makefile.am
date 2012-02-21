@@ -10,5 +10,5 @@ EXTRA_DIST = \
     shmdata.pc
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = shmdata.pc
+pkgconfig_DATA = shmdata-@SCENIC_API_VERSION@.pc
 

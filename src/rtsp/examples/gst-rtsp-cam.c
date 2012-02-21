@@ -17,6 +17,8 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#if 0
+
 #include <gst/gst.h>
 #pragma GCC diagnostic ignored "-pedantic"
 #include <gst/rtsp-server/rtsp-server.h>
@@ -142,3 +144,6 @@ main(int argc, char **argv)
 
   return 0;
 }
+#else
+int main() { return 0; }
+#endif // FIXME
