@@ -9,7 +9,7 @@ if [ $? != 0 ]; then
 fi
 
 if [ ! "x$LOGNAME" = "xbbslave" ]; then
-    ./configure $@ --enable-svn-revision
+    ./configure $@
 else
     ./configure $@
 fi
