@@ -1,6 +1,6 @@
 AM_CXXFLAGS = -I$(top_srcdir)
 LDADD = \
-	$(top_builddir)/shmdata/libshmdata-@SHMDATA_API_VERSION@.la
+	$(top_builddir)/shmdata/libshmdata-@SCENIC_API_VERSION@.la
 
 check_PROGRAMS = \
     check_hello
