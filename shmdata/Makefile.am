@@ -1,3 +1,5 @@
+SUBDIRS = tests
+
 AM_CXXFLAGS = \
     $(BOOST_CPPFLAGS) \
     -I$(top_srcdir)

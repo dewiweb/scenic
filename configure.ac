@@ -312,6 +312,7 @@ AC_CONFIG_FILES([py/scripts/midistream], [chmod +x py/scripts/midistream])
 AC_CONFIG_FILES([
 Makefile
 shmdata/Makefile
+shmdata/tests/Makefile
 data/Makefile
 data/glade/Makefile
 data/pixmaps/Makefile
