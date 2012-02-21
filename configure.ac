@@ -114,9 +114,6 @@ AC_ARG_ENABLE([debug], [
   --enable-debug  debug symbols, build test programs, stricter compile ],,
         enable_debug=yes)
 
-AC_ARG_ENABLE([svn-revision], [ --enable-svn-revision ],,enable_svn_revision=no)
-AM_CONDITIONAL([SVN],test "x${enable_svn_revision}" = "xyes")
-
 AC_MSG_WARN([${ac_prefix}])
 # Checks for library functions.
 
@@ -144,6 +141,10 @@ PKG_CHECK_MODULES(GSTAPP, gstreamer-app-0.10, have_gstreamer_app=true, have_gstr
 if test "x${have_gstreamer_app}" = "xfalse" ; then
     AC_MSG_ERROR([missing package:  libgstreamer-plugins-app0.10-dev  ])
 fi
+
+dnl TODO: gio
+dnl TODO: osg
+dnl TODO: clutter
 
 #Trying to set CAIRO using pkg-config
 PKG_CHECK_MODULES(CAIRO, cairo, have_cairo=true, have_cairo=false)
