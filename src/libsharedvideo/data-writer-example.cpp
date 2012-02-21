@@ -36,7 +36,8 @@ static void dont_eat_my_chicken_wings (void *priv);
 void
 leave(int sig) {
     s_app.on = false;
-    sleep (1);
+    gst_element_set_state (s_app.pipe, GST_STATE_NULL);
+    gst_object_unref (GST_OBJECT (s_app.pipe));
     exit(sig);
 }
 
@@ -67,13 +68,25 @@ main (int argc, char *argv[])
     g_assert (app->src);
     gst_bin_add (GST_BIN (app->pipe), app->src);
 
+    GstCaps *mycaps = gst_caps_new_simple ("application/nico", NULL); \
+    gst_app_src_set_caps (GST_APP_SRC(app->src), mycaps);
+    //unref ?
+
     app->id = gst_element_factory_make ("identity", NULL);
     g_assert (app->id);
     gst_bin_add (GST_BIN (app->pipe), app->id);
 
     app->writer = new ScenicSharedVideo::Writer (app->pipe,app->id,socketName);
-
     gst_element_link (app->src, app->id);
+
+    // GstElement *shmsink = gst_element_factory_make ("shmsink", NULL);
+    // g_assert (shmsink);
+    // gst_bin_add (GST_BIN (app->pipe), shmsink);
+    
+    // g_object_set (G_OBJECT (shmsink), "socket-path", socketName.c_str(), NULL);
+
+
+    // gst_element_link_many (app->src, app->id, shmsink, NULL);
 
     app->on = true;
     gst_element_set_state (app->pipe, GST_STATE_PLAYING);
@@ -87,6 +100,7 @@ main (int argc, char *argv[])
 	    memset (data, i, 100);
     
 	    buf = gst_app_buffer_new (data, 100, dont_eat_my_chicken_wings, data);
+	    
 	    printf ("%d: creating buffer for pointer %p, %p\n", i, data, buf);
 	    gst_app_src_push_buffer (GST_APP_SRC (app->src), buf);
 	}
@@ -94,7 +108,10 @@ main (int argc, char *argv[])
     }
 
     /* push EOS */
-    gst_app_src_end_of_stream (GST_APP_SRC (app->src));
+    //gst_app_src_end_of_stream (GST_APP_SRC (app->src));
+
+    gst_element_set_state (app->pipe, GST_STATE_NULL);
+    gst_object_unref (GST_OBJECT (app->pipe));
 
     return 0;
 }

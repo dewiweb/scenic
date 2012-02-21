@@ -68,6 +68,7 @@ on_first_video_data (ScenicSharedVideo::Reader *context, void *user_data)
 void
 leave(int sig) {
     gst_element_set_state (s_app.pipe, GST_STATE_NULL);
+    gst_object_unref (GST_OBJECT (s_app.pipe));
     exit(sig);
 }
 
