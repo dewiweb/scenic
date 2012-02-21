@@ -12,6 +12,7 @@
 # After the release:
 # - increase scenic_micro_version to the next odd number
 # - increase scenic_interface_version to the next odd number
+# version should always be .1 greater than last tag, unless this is a tag
 m4_define([scenic_major_version], [0])
 m4_define([scenic_minor_version], [7])
 m4_define([scenic_micro_version], [1])
@@ -24,7 +25,7 @@ m4_define([scenic_release_status],
 m4_define([scenic_version], [scenic_major_version.scenic_minor_version.scenic_micro_version])
 
 # change this only when breaking the API
-m4_define([shmdata_api_version], [0.7])
+m4_define([scenic_api_version], [0.7])
 
 # increase the interface age by 1 for each release; if the API changes,
 # set to 0. interface_age and binary_age are used to create the soname
@@ -35,17 +36,17 @@ m4_define([shmdata_api_version], [0.7])
 # this allows using the same soname for different micro-releases in case
 # no API was added or deprecated. for instance:
 #
-#   shmdata 1.2.0  -> 100 * 2 + 0  = 200, interface age = 0 -> 200
-#   shmdata 1.2.2  -> 100 * 2 + 2  = 202, interface age = 2 -> 200
-#   shmdata 1.2.4  -> 100 * 2 + 4  = 204, interface age = 4 -> 200
+#   scenic 1.2.0  -> 100 * 2 + 0  = 200, interface age = 0 -> 200
+#   scenic 1.2.2  -> 100 * 2 + 2  = 202, interface age = 2 -> 200
+#   scenic 1.2.4  -> 100 * 2 + 4  = 204, interface age = 4 -> 200
 #   [ API addition, deprecation ]
-#   shmdata 1.2.6  -> 100 * 2 + 6  = 206, interface age = 0 -> 206
-#   shmdata 1.2.8  -> 100 * 2 + 8  = 208, interface age = 2 -> 206
-#   shmdata 1.2.10 -> 100 * 2 + 10 = 210, interface age = 4 -> 206
+#   scenic 1.2.6  -> 100 * 2 + 6  = 206, interface age = 0 -> 206
+#   scenic 1.2.8  -> 100 * 2 + 8  = 208, interface age = 2 -> 206
+#   scenic 1.2.10 -> 100 * 2 + 10 = 210, interface age = 4 -> 206
 #   ...
 #
-m4_define([shmdata_interface_age], [0])
-m4_define([shmdata_binary_age], [m4_eval(100 * scenic_minor_version + scenic_micro_version)])
+m4_define([scenic_interface_age], [0])
+m4_define([scenic_binary_age], [m4_eval(100 * scenic_minor_version + scenic_micro_version)])
 
 AC_PREREQ([2.63])
 AC_INIT([scenic],
@@ -60,25 +61,21 @@ AC_SUBST([SCENIC_MAJOR_VERSION],  [scenic_major_version])
 AC_SUBST([SCENIC_MINOR_VERSION],  [scenic_minor_version])
 AC_SUBST([SCENIC_MICRO_VERSION],  [scenic_micro_version])
 AC_SUBST([SCENIC_VERSION],        [scenic_version])
-AC_SUBST([SHMDATA_API_VERSION],    [scenic_api_version])
-AC_SUBST([SHMDATA_API_VERSION_AM], [$SCENIC_MAJOR_VERSION\_0])
+AC_SUBST([SCENIC_API_VERSION],    [scenic_api_version])
+AC_SUBST([SCENIC_API_VERSION_AM], [$SCENIC_MAJOR_VERSION\_0])
 AC_SUBST([SCENIC_RELEASE_STATUS], [scenic_release_status])
 
-m4_define([lt_current],  [m4_eval(100 * scenic_minor_version + scenic_micro_version - shmdata_interface_age)])
-m4_define([lt_revision], [shmdata_interface_age])
-m4_define([lt_age],      [m4_eval(shmdata_binary_age - shmdata_interface_age)])
+m4_define([lt_current],  [m4_eval(100 * scenic_minor_version + scenic_micro_version - scenic_interface_age)])
+m4_define([lt_revision], [scenic_interface_age])
+m4_define([lt_age],      [m4_eval(scenic_binary_age - scenic_interface_age)])
 SCENIC_LT_CURRENT=lt_current
 SCENIC_LT_REV=lt_revision
 SCENIC_LT_AGE=lt_age
-SCENIC_LT_VERSION="$SHMDATA_LT_CURRENT:$SHMDATA_LT_REV:$SHMDATA_LT_AGE"
-AC_SUBST([SCENIC_LT_VERSION], "$SHMDATA_LT_VERSION")
-SCENIC_LT_LDFLAGS="-version-info $SHMDATA_LT_VERSION"
-#                                               -*- Autoconf -*-
-# Process this file with autoconf to produce a configure script.
+SCENIC_LT_VERSION="$SCENIC_LT_CURRENT:$SCENIC_LT_REV:$SCENIC_LT_AGE"
+AC_SUBST([SCENIC_LT_VERSION], "$SCENIC_LT_VERSION")
+SCENIC_LT_LDFLAGS="-version-info $SCENIC_LT_VERSION"
 
-# version should always be .1 greater than last tag, unless this is a tag
 AC_CONFIG_SRCDIR([src/main/milhouse.cpp])
-AC_CONFIG_MACRO_DIR([m4])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([subdir-objects -Wno-portability])
@@ -364,7 +361,7 @@ src/rtsp/Makefile
 src/rtsp/examples/Makefile
 src/main/Makefile
 src/main/test/Makefile
-shmdata-${SHMDATA_API_VERSION}.pc:shmdata.pc.in
+shmdata-${SCENIC_API_VERSION}.pc:shmdata.pc.in
 ])
 
 AC_OUTPUT
