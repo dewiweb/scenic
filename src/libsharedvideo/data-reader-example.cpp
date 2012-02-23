@@ -1,5 +1,3 @@
-
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -36,7 +34,11 @@ on_new_buffer_from_source (GstElement * elt, gpointer user_data)
     /* pull the next item, this can return NULL when there is no more data and
      * EOS has been received */
     buf = gst_app_sink_pull_buffer (GST_APP_SINK (s_app.sink));
-    printf ("retrieved buffer %p\n", buf);
+
+    printf ("retrieved buffer %p, data %p, data size %d, timestamp %d\n", buf, 
+	    GST_BUFFER_DATA(buf), GST_BUFFER_SIZE(buf),
+	    GST_TIME_AS_MSECONDS(GST_BUFFER_TIMESTAMP(buf)));
+    
     if (buf)
 	gst_buffer_unref (buf);
 }
