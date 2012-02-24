@@ -67,7 +67,7 @@ main (int argc, char *argv[])
     g_assert (app->src);
     gst_bin_add (GST_BIN (app->pipe), app->src);
 
-    GstCaps *mycaps = gst_caps_new_simple ("ranapete", NULL);
+    GstCaps *mycaps = gst_caps_new_simple ("application/scenicdata_", NULL);
     gst_app_src_set_caps (GST_APP_SRC(app->src), mycaps);
     //unref ?
 
@@ -83,22 +83,23 @@ main (int argc, char *argv[])
 
     int mytime=0;
     while (app->on){  
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 1; i++) {
 	    GstBuffer *buf;
 
 //data here should be serialized in order
 
+	    int size= 10000;
 	    void *data;
-	     data = malloc (100000);
-	     memset (data, i, 100000);
-	     buf = gst_app_buffer_new (data, 100000, dont_eat_my_chicken_wings, data);
+	     data = malloc (size);
+	     memset (data, i, size); 
+	     buf = gst_app_buffer_new (data, size, dont_eat_my_chicken_wings, data);
 
 	     GST_BUFFER_TIMESTAMP(buf) = (GstClockTime)((mytime) * 1e9); 
-	    g_print ("mytime %d \n",mytime);
-	    printf ("%d: creating buffer for pointer %p, %p\n", i, data, buf);
+	    // g_print ("mytime %d \n",mytime);
+	    // printf ("%d: creating buffer for pointer %p, %p\n", i, data, buf);
 	    gst_app_src_push_buffer (GST_APP_SRC (app->src), buf);
 	}
-	sleep (1);
+	usleep (30000);
 	mytime++;
     }
 
@@ -114,6 +115,6 @@ main (int argc, char *argv[])
 static void
 dont_eat_my_chicken_wings (void *priv)
 {
-    printf ("freeing buffer for pointer %p\n", priv);
+    //printf ("freeing buffer for pointer %p\n", priv);
     free (priv);
 }

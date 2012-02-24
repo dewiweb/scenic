@@ -22,6 +22,9 @@
 
 #include <gst/gst.h>
 #include <gst/app/gstappsink.h>
+#include "shared-video.h"
+
+
 
 /*
  * A simple RTP receiver 
@@ -51,29 +54,15 @@
  * from another machine, change this address. */
 #define DEST_HOST "127.0.0.1"
 
-
-
-// -- appsink behaviour -- 
-static void
-on_new_buffer_from_source (GstElement * elt, gpointer user_data)
+typedef struct _App App;
+struct _App
 {
-    g_print ("on_new_buffer_from_source \n");
-    GstBuffer *buf;
-    
-    /* pull the next item, this can return NULL when there is no more data and
-     * EOS has been received */
-    buf = gst_app_sink_pull_buffer (GST_APP_SINK (elt));
-    g_print ("retrieved buffer %p, data %p, data size %d, timestamp %d\n", buf, 
-	     GST_BUFFER_DATA(buf), GST_BUFFER_SIZE(buf),
-	     GST_TIME_AS_MSECONDS(GST_BUFFER_TIMESTAMP(buf)));
-    //g_print ("data: %s \n",GST_BUFFER_DATA(buf));
-    
+    GstElement *pipeline;
+    ScenicSharedVideo::Writer *writer;
+    std::string socketName;
+};
 
-    if (buf)
-     	gst_buffer_unref (buf);
-}
-
-
+App app;
 
 
 /* print the stats of a source */
@@ -118,6 +107,12 @@ on_new_buffer_from_source (GstElement * elt, gpointer user_data)
    print_source_stats (osrc);
  }
 
+ static void
+ pad_removed_cb (GstElement * rtpbin, GstPad * new_pad, gpointer user_data/*GstElement * depay*/)
+ {
+     g_print ("pad removed: %s\n", GST_PAD_NAME (new_pad));
+   
+ }
  /* will be called when rtpbin has validated a payload that we can depayload */
  static void
  pad_added_cb (GstElement * rtpbin, GstPad * new_pad, gpointer user_data/*GstElement * depay*/)
@@ -125,47 +120,40 @@ on_new_buffer_from_source (GstElement * elt, gpointer user_data)
    GstPad *sinkpad;
    GstPadLinkReturn lres;
 
-   GstElement *pipeline = (GstElement *)user_data;
+   App *app = (App *)user_data;
  
    g_print ("new payload on pad: %s\n", GST_PAD_NAME (new_pad));
+   
+   
 
   /* the depayloading and decoding */
    GstElement *gstdepay = gst_element_factory_make ("rtpgstdepay" , NULL);
    g_assert (gstdepay);
 
-   
-   GstElement *appsink = gst_element_factory_make ("appsink" , NULL);
-   g_assert (appsink);
-   g_object_set (G_OBJECT (appsink), "emit-signals", TRUE, "sync", FALSE, NULL);
-   g_signal_connect (appsink, "new-buffer",
-     		     G_CALLBACK (on_new_buffer_from_source), NULL);
-   
-   gst_element_set_state (gstdepay,GST_STATE_PLAYING);
-   gst_element_set_state (appsink,GST_STATE_PLAYING);
 
-   /* add depayloading and playback to the pipeline and link */
-   gst_bin_add_many (GST_BIN (pipeline), 
-		     gstdepay, 
-		     appsink, NULL);
+   gst_element_set_state (gstdepay,GST_STATE_PLAYING);
    
-   gboolean res = gst_element_link_many (gstdepay,
-					 appsink, NULL);
-   g_assert (res == TRUE);
-      
+   /* add depayloading and playback to the pipeline and link */
+   gst_bin_add (GST_BIN (app->pipeline), gstdepay);
    
     sinkpad = gst_element_get_static_pad (gstdepay, "sink");
     g_assert (sinkpad);
 
-    g_print ("new pad caps is %s \n", gst_caps_to_string (gst_pad_get_caps (new_pad)));
-    g_print ("depay pad caps is %s \n", gst_caps_to_string (gst_pad_get_caps (sinkpad)));
-
     lres = gst_pad_link (new_pad, sinkpad);
-     g_assert (lres == GST_PAD_LINK_OK);
-     gst_object_unref (sinkpad);
+    g_assert (lres == GST_PAD_LINK_OK);
+    gst_object_unref (sinkpad);
+
+    app->writer = new ScenicSharedVideo::Writer (app->pipeline,gstdepay,app->socketName);
  }
 
 
 
+void
+leave(int sig) {
+    gst_element_set_state (app.pipeline, GST_STATE_NULL);
+    gst_object_unref (GST_OBJECT (app.pipeline));
+    exit(sig);
+}
 
 /* build a pipeline equivalent to:
  *
@@ -180,20 +168,26 @@ main (int argc, char *argv[])
 {
     GstElement *rtpbin, *rtcpsrc, *rtcpsink;
     GstElement *rtpsrc;
-    GstElement *gstdepay, *appsink;
-    GstElement *pipeline;
     GMainLoop *loop;
     GstCaps *caps;
-    gboolean res;
     GstPadLinkReturn lres;
     GstPad *srcpad, *sinkpad;
+    
+     /* Check input arguments */
+    if (argc != 2) {
+	g_printerr ("Usage: %s <socket-path>\n", argv[0]);
+	return -1;
+    }
+    app.socketName.append (argv[1]);
+
+    (void) signal(SIGINT,leave);
 
   /* always init first */
   gst_init (&argc, &argv);
 
   /* the pipeline to hold everything */
-  pipeline = gst_pipeline_new (NULL);
-  g_assert (pipeline);
+  app.pipeline = gst_pipeline_new (NULL);
+  g_assert (app.pipeline);
 
   /* the udp src and source we will use for RTP and RTCP */
    rtpsrc = gst_element_factory_make ("udpsrc", "rtpsrc");
@@ -201,9 +195,9 @@ main (int argc, char *argv[])
    g_object_set (rtpsrc, "port", 5002, NULL);
    /* we need to set caps on the udpsrc for the RTP data */
    // caps inside caps is obtained with "echo application/nicolas | base64", removing the "0=" at the end
-    caps = gst_caps_from_string ("application/x-rtp,media=(string)application,payload=(int)96,clock-rate=(int)90000,encoding-name=(string)X-GST,caps=(string)FAKE");
-    g_object_set (rtpsrc, "caps", caps, NULL);
-    gst_caps_unref (caps);
+     caps = gst_caps_from_string ("application/x-rtp,media=(string)application,payload=(int)96,clock-rate=(int)90000,encoding-name=(string)X-GST,caps=(string)YXBwbGljYXRpb24vc2NlbmljZGF0YV8K");
+     g_object_set (rtpsrc, "caps", caps, NULL);
+     gst_caps_unref (caps);
 
 
    rtcpsrc = gst_element_factory_make ("udpsrc", "rtcpsrc");
@@ -216,34 +210,15 @@ main (int argc, char *argv[])
    /* no need for synchronisation or preroll on the RTCP sink */
    g_object_set (rtcpsink, "async", FALSE, "sync", FALSE, NULL);
 
-   gst_bin_add_many (GST_BIN (pipeline), rtpsrc, 
+   gst_bin_add_many (GST_BIN (app.pipeline), rtpsrc, 
    		    rtcpsrc, rtcpsink, 
    		    NULL);
-
-  // /* the depayloading and decoding */
-  //  gstdepay = gst_element_factory_make ("rtpgstdepay" , NULL);
-  //  g_assert (gstdepay);
-  //  appsink = gst_element_factory_make ("appsink" , NULL);
-  //  g_assert (appsink);
-  //  g_object_set (G_OBJECT (appsink), "emit-signals", TRUE, "sync", FALSE, NULL);
-  //  g_signal_connect (appsink, "new-buffer",
-  //    		     G_CALLBACK (on_new_buffer_from_source), NULL);
-   
-
-  // /* add depayloading and playback to the pipeline and link */
-  // gst_bin_add_many (GST_BIN (pipeline), 
-  // 		    gstdepay, 
-  // 		    appsink, NULL);
-
-  //  res = gst_element_link_many (gstdepay, 
-  //  			       appsink, NULL);
-  //  g_assert (res == TRUE);
 
     /* the rtpbin element */
     rtpbin = gst_element_factory_make ("gstrtpbin", "rtpbin");
     g_assert (rtpbin);
 
-    gst_bin_add (GST_BIN (pipeline), rtpbin);
+    gst_bin_add (GST_BIN (app.pipeline), rtpbin);
 
     g_print ("rtp sinkpad\n");
   
@@ -279,24 +254,25 @@ main (int argc, char *argv[])
     /* the RTP pad that we have to connect to the depayloader will be created
      * dynamically so we connect to the pad-added signal, pass the depayloader as
      * user_data so that we can link to it. */
-    g_signal_connect (rtpbin, "pad-added", G_CALLBACK (pad_added_cb), pipeline/*gstdepay*/);
+    g_signal_connect (rtpbin, "pad-added", G_CALLBACK (pad_added_cb), &app);
+    g_signal_connect (rtpbin, "pad-removed", G_CALLBACK (pad_removed_cb), &app);
 
     /* give some stats when we receive RTCP */
     // g_signal_connect (rtpbin, "on-ssrc-active", G_CALLBACK (on_ssrc_active_cb),
-    //     NULL);
+    // 		      NULL);
 
   /* set the pipeline to playing */
   g_print ("starting receiver pipeline\n");
-  gst_element_set_state (pipeline, GST_STATE_PLAYING);
+  gst_element_set_state (app.pipeline, GST_STATE_PLAYING);
 
   /* we need to run a GLib main loop to get the messages */
   loop = g_main_loop_new (NULL, FALSE);
   g_main_loop_run (loop);
 
   g_print ("stopping receiver pipeline\n");
-  gst_element_set_state (pipeline, GST_STATE_NULL);
+  gst_element_set_state (app.pipeline, GST_STATE_NULL);
 
-  gst_object_unref (pipeline);
+  gst_object_unref (app.pipeline);
 
   return 0;
 }

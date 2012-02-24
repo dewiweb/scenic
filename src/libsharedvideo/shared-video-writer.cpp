@@ -5,8 +5,60 @@ namespace ScenicSharedVideo
     Writer::Writer ()
     {}
     
-    Writer::Writer (GstElement *pipeline,GstElement *videoElement,const std::string socketPath) : timereset_ (FALSE), timeshift_ (0)
+    Writer::Writer (GstElement *pipeline,GstElement *srcElement,const std::string socketPath) : pipeline_ (pipeline), timereset_ (FALSE), timeshift_ (0)
     {
+	make_shm_branch (socketPath);
+	link_branch (srcElement);
+	set_branch_state_as_pipeline ();
+    }
+
+    Writer::Writer (GstElement *pipeline,GstPad *srcPad,const std::string socketPath) : pipeline_ (pipeline), timereset_ (FALSE), timeshift_ (0)
+    {
+	make_shm_branch (socketPath);
+	link_branch (srcPad);	
+	set_branch_state_as_pipeline ();
+    }
+    
+
+    Writer::~Writer (){
+   
+	//todo (maybe remove from pipeline and set states to NULL)
+    }
+
+    void 
+    Writer::link_branch(GstElement *srcElement)
+    {
+	gst_element_link_many (srcElement, qserial_, serializer_, shmsink_,NULL);
+    }
+
+    void 
+    Writer::link_branch(GstPad *srcPad)
+    {
+	GstPad *sinkPad = gst_element_get_static_pad (qserial_, "sink");
+	g_assert (sinkPad);
+	GstPadLinkReturn lres = gst_pad_link (srcPad, sinkPad);
+	g_assert (lres == GST_PAD_LINK_OK);
+	gst_object_unref (sinkPad);
+
+	gst_element_link_many (qserial_, serializer_, shmsink_,NULL);
+    }
+
+    void
+    Writer::set_branch_state_as_pipeline ()
+    {
+	GstState current;
+	gst_element_get_state (pipeline_,&current,NULL,GST_CLOCK_TIME_NONE);
+	
+	if(current != GST_STATE_NULL)
+	{
+	    gst_element_set_state (qserial_, current);
+	    gst_element_set_state (serializer_, current);
+	    gst_element_set_state (shmsink_, current);
+	}
+    }
+    
+    void 
+    Writer::make_shm_branch(const std::string socketPath){
 	qserial_     = gst_element_factory_make ("queue", NULL);
 	serializer_  = gst_element_factory_make ("gdppay",  NULL);
 	shmsink_     = gst_element_factory_make ("shmsink", NULL);
@@ -15,9 +67,6 @@ namespace ScenicSharedVideo
 	    g_printerr ("Writer: One gstreamer element could not be created.\n");
 	}
 
-	GstState current;
-	gst_element_get_state (pipeline,&current,NULL,GST_CLOCK_TIME_NONE);
-	
 	g_object_set (G_OBJECT (shmsink_), "socket-path", socketPath.c_str(), NULL);
 	g_object_set (G_OBJECT (shmsink_), "shm-size", 94967295, NULL);
 	g_object_set (G_OBJECT (shmsink_), "sync", FALSE, NULL);
@@ -34,19 +83,10 @@ namespace ScenicSharedVideo
 			  G_CALLBACK (Writer::on_client_connected), 
 			  static_cast<void *>(this));
 
-	gst_bin_add_many (GST_BIN (pipeline), qserial_, serializer_, shmsink_, NULL);
-	gst_element_link_many (videoElement, qserial_, serializer_, shmsink_,NULL);
+	gst_bin_add_many (GST_BIN (pipeline_), qserial_, serializer_, shmsink_, NULL);
 
-	if(current != GST_STATE_NULL)
-	{
-	    gst_element_set_state (qserial_, current);
-	    gst_element_set_state (serializer_, current);
-	    gst_element_set_state (shmsink_, current);
-	}
     }
 
-    Writer::~Writer (){
-    }
 
     gboolean
     Writer::reset_time (GstPad * pad, GstMiniObject * mini_obj, gpointer user_data)
