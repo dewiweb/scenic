@@ -29,6 +29,8 @@ struct _App
 
 App s_app;
 
+
+
 static void dont_eat_my_chicken_wings (void *priv);
 
 //clean up pipeline when ctrl-c
@@ -82,33 +84,37 @@ main (int argc, char *argv[])
     gst_element_set_state (app->pipe, GST_STATE_PLAYING);
 
     int mytime=0;
+
+
+    gchar hello[11]="helloworld";
+    
+    //g_print ("max int %d\n",INT_MAX);
+
     while (app->on){  
 	for (i = 0; i < 1; i++) {
 	    GstBuffer *buf;
 
+	    
 //data here should be serialized in order
-
-	    int size= 10000;
-	    void *data;
-	     data = malloc (size);
-	     memset (data, i, size); 
-	     buf = gst_app_buffer_new (data, size, dont_eat_my_chicken_wings, data);
-
-	     GST_BUFFER_TIMESTAMP(buf) = (GstClockTime)((mytime) * 1e9); 
+	    
+//	    buf = gst_app_buffer_new (data, size, dont_eat_my_chicken_wings, data);
+	    buf = gst_app_buffer_new (&hello, sizeof(hello), dont_eat_my_chicken_wings, NULL);
+	    
+	    GST_BUFFER_TIMESTAMP(buf) = (GstClockTime)((mytime) * 1e9); 
 	    // g_print ("mytime %d \n",mytime);
 	    // printf ("%d: creating buffer for pointer %p, %p\n", i, data, buf);
 	    gst_app_src_push_buffer (GST_APP_SRC (app->src), buf);
 	}
-	usleep (30000);
+	sleep (1);
 	mytime++;
     }
-
+    
     /* push EOS */
     //gst_app_src_end_of_stream (GST_APP_SRC (app->src));
-
+    
     gst_element_set_state (app->pipe, GST_STATE_NULL);
     gst_object_unref (GST_OBJECT (app->pipe));
-
+    
     return 0;
 }
 
@@ -116,5 +122,5 @@ static void
 dont_eat_my_chicken_wings (void *priv)
 {
     //printf ("freeing buffer for pointer %p\n", priv);
-    free (priv);
+    //free (priv);
 }

@@ -258,8 +258,8 @@ main (int argc, char *argv[])
     g_signal_connect (rtpbin, "pad-removed", G_CALLBACK (pad_removed_cb), &app);
 
     /* give some stats when we receive RTCP */
-    // g_signal_connect (rtpbin, "on-ssrc-active", G_CALLBACK (on_ssrc_active_cb),
-    // 		      NULL);
+    g_signal_connect (rtpbin, "on-ssrc-active", G_CALLBACK (on_ssrc_active_cb),
+     		      NULL);
 
   /* set the pipeline to playing */
   g_print ("starting receiver pipeline\n");

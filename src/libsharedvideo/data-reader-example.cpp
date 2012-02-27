@@ -35,11 +35,11 @@ on_new_buffer_from_source (GstElement * elt, gpointer user_data)
      * EOS has been received */
     buf = gst_app_sink_pull_buffer (GST_APP_SINK (s_app.sink));
 
-    printf ("retrieved buffer %p, data %p, data size %d, timestamp %d, caps %s\n", buf, 
+    g_print ("retrieved buffer %p, data %p, data size %d, timestamp %d, caps %s\n", buf, 
 	    GST_BUFFER_DATA(buf), GST_BUFFER_SIZE(buf),
 	    GST_TIME_AS_MSECONDS(GST_BUFFER_TIMESTAMP(buf)),
 	    gst_caps_to_string(GST_BUFFER_CAPS(buf)));
-    
+    g_print ("received: %s\n",GST_BUFFER_DATA(buf));
     
     if (buf)
 	gst_buffer_unref (buf);
