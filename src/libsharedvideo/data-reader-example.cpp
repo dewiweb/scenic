@@ -13,7 +13,6 @@
 
 #include <string>
 #include "shared-video.h"
-#include <unistd.h>//sleep
 
 typedef struct _App App;
 struct _App
@@ -39,7 +38,7 @@ on_new_buffer_from_source (GstElement * elt, gpointer user_data)
 	    GST_BUFFER_DATA(buf), GST_BUFFER_SIZE(buf),
 	    GST_TIME_AS_MSECONDS(GST_BUFFER_TIMESTAMP(buf)),
 	    gst_caps_to_string(GST_BUFFER_CAPS(buf)));
-    g_print ("received: %s\n",GST_BUFFER_DATA(buf));
+    //g_print ("received: %s\n",GST_BUFFER_DATA(buf));
     
     if (buf)
 	gst_buffer_unref (buf);

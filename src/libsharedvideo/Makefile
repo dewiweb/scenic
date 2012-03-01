@@ -39,5 +39,11 @@ data_reader_from_rtp: data-reader-from-rtp-example.cpp
 data_writer_from_rtp: data-writer-from-rtp-example.cpp
 	g++ -Wall data-writer-from-rtp-example.cpp -o data_writer_from_rtp -L. -lscenicsharedvideo $(DEPS)
 
+pcd_write: pcd_write.cpp
+	g++ -o pcd_write pcd_write.cpp -L. -lscenicsharedvideo `pkg-config --cflags --libs pcl_visualization-1.4 gstreamer-0.10 gio-2.0 gstreamer-app-0.10` -I /usr/include/vtk-5.6/
+
+pcd_read: pcd_read.cpp
+	g++ -o pcd_read pcd_read.cpp -L. -lscenicsharedvideo `pkg-config --cflags --libs pcl_visualization-1.4 gstreamer-0.10 gio-2.0 gstreamer-app-0.10` -I /usr/include/vtk-5.6/
+
 clean:
 	rm -f *.o *.so writer_example reader_example reader_osg reader_clutter_actor data_writer_example data_reader_example *~ data_reader_to_rtp data_reader_from_rtp data_writer_from_rtp

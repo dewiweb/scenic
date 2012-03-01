@@ -86,9 +86,11 @@ main (int argc, char *argv[])
     int mytime=0;
 
 
-    gchar hello[11]="helloworld";
+    gchar hello[21]="helloworldhelloworld";
     
     //g_print ("max int %d\n",INT_MAX);
+    
+    int usecPeriod=30000;
 
     while (app->on){  
 	for (i = 0; i < 1; i++) {
@@ -96,16 +98,16 @@ main (int argc, char *argv[])
 
 	    
 //data here should be serialized in order
-	    
+	
 //	    buf = gst_app_buffer_new (data, size, dont_eat_my_chicken_wings, data);
 	    buf = gst_app_buffer_new (&hello, sizeof(hello), dont_eat_my_chicken_wings, NULL);
 	    
-	    GST_BUFFER_TIMESTAMP(buf) = (GstClockTime)((mytime) * 1e9); 
+	    GST_BUFFER_TIMESTAMP(buf) = (GstClockTime)((mytime) * 1e9/usecPeriod); 
 	    // g_print ("mytime %d \n",mytime);
 	    // printf ("%d: creating buffer for pointer %p, %p\n", i, data, buf);
 	    gst_app_src_push_buffer (GST_APP_SRC (app->src), buf);
 	}
-	sleep (1);
+	usleep (usecPeriod);
 	mytime++;
     }
     
