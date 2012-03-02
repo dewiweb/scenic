@@ -59,7 +59,7 @@ po::options_description ProgramOptions::createDefaultOptions()
         ("audiobitrate", po::value<int>()->default_value(0), "bitrate for compressed audio in kbps "
          "(7,16,24,32,40,48,56,64,80,96,112,128,160,192,224,256,320)")
         ("audiosource,e", po::value<string>()->default_value("jackaudiosrc"),
-         "audio input (autoaudiosrc,jackaudiosrc,alsasrc,pulsesrc)")
+         "audio input (autoaudiosrc,jackaudiosrc,alsasrc,pulsesrc,decklinksrc)")
         ("videosource,u", po::value<string>()->default_value("videotestsrc"),
          "video input (v4l2src,dc1394src,dv1394src)")
         ("timeout,z", po::value<int>()->default_value(0), "time in ms to wait before quitting, 0=run indefinitely")
@@ -102,6 +102,7 @@ po::options_description ProgramOptions::createDefaultOptions()
         ("port-range", po::value<string>(), "client port range that can be used to receive RTP and RTCP data (rtsp-client only) (e.g. 3000-3005)")
         ("disable-video", po::bool_switch(), "run without video")
         ("disable-audio", po::bool_switch(), "run without audio")
+        ("decklink-format", po::value<int>()->default_value(-1), "Decklink format")
         ;
 
     return desc;
