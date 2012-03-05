@@ -153,10 +153,11 @@ H264Encoder::H264Encoder(const Pipeline &pipeline, int bitrate) :
     // vbv-bufsize / vbv-maxrate = the number of seconds the client must buffer before playback
     g_object_set(encoder_, "byte-stream", TRUE, NULL);
     g_object_set(encoder_, "vbv-buf-capacity", 300, "intra-refresh", TRUE, NULL);
+    g_object_set(encoder_, "speed-preset", 1, NULL);
     // These are x264enc types (i.e. enums) so we can't use g_object_set
     // directly
     gst_util_set_object_arg (G_OBJECT(encoder_), "tune", "zerolatency");
-    gst_util_set_object_arg (G_OBJECT(encoder_), "pass", "qual");
+    //gst_util_set_object_arg (G_OBJECT(encoder_), "pass", "qual");
 
     // subme: subpixel motion estimation 1=fast, 6=best
 
