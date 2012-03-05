@@ -91,7 +91,7 @@ class VideoDvSource
         _GstElement *queue_, *dvdec_;
 };
 
-class VideoV4lSource
+class VideoV4lSource 
     : public VideoSource
 {
     public:
@@ -105,7 +105,7 @@ class VideoV4lSource
         virtual _GstElement *srcElement() { return capsFilter_; }
 };
 
-class VideoDc1394Source
+class VideoDc1394Source 
     : public VideoSource
 {
     public:
@@ -113,6 +113,14 @@ class VideoDc1394Source
     private:
         std::string srcCaps(unsigned int framerateIndex = 0) const;
         virtual _GstElement *srcElement() { return capsFilter_; }
+};
+
+class DecklinkSource 
+    : public VideoSource
+{
+    public:
+        DecklinkSource(const Pipeline &pipeline, const VideoSourceConfig &config);
+
 };
 
 #endif //_VIDEO_SOURCE_H_

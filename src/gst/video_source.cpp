@@ -299,3 +299,29 @@ std::string VideoDc1394Source::srcCaps(unsigned int /*framerateIndex*/) const
     return capsStr.str();
 }
 
+DecklinkSource::DecklinkSource(const Pipeline &pipeline, const VideoSourceConfig &config) :
+    VideoSource(config)
+{
+    source_ = pipeline.makeElement(config_.source(), NULL);
+    if (config_.hasDecklinkFormat())
+        g_object_set(G_OBJECT(source_), "mode", config_.decklinkFormat(), NULL);
+    else
+        LOG_DEBUG("No format specified for decklink video capture");
+
+    if (config_.hasDecklinkConnection())
+        g_object_set(G_OBJECT(source_), "connection", config_.decklinkConnection(), NULL);
+    else
+        LOG_DEBUG("No connection specified for decklink video capture");
+
+    if (config_.hasDecklinkSubdevice())
+        g_object_set(G_OBJECT(source_), "subdevice", config_.decklinkSubdevice(), NULL);
+    else
+        LOG_DEBUG("No subdevice specified for decklink video capture");
+
+    // GstElement *videorate = pipeline.makeElement("videorate", NULL);
+    
+    // capsFilter_ = pipeline.makeElement("capsfilter", NULL);
+    // gstlinkable::link(source_, videorate);
+    // gstlinkable::link(videorate, capsFilter_);
+    // setCapsFilter(srcCaps());
+}

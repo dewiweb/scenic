@@ -60,6 +60,9 @@ VideoSourceConfig::VideoSourceConfig(const boost::program_options::variables_map
     captureWidth_(options["width"].as<int>()),
     captureHeight_(options["height"].as<int>()),
     grayscale_(options["grayscale"].as<bool>()),
+    decklinkFormat_(options["decklink-format"].as<int>()),
+    decklinkConnection_(options["decklink-connection"].as<int>()),
+    decklinkSubdevice_(options["decklink-subdevice"].as<int>()),
     pictureAspectRatio_(options["aspect-ratio"].as<std::string>())
 {}
 
@@ -77,6 +80,8 @@ VideoSource * VideoSourceConfig::createSource(const Pipeline &pipeline) const
         return new VideoFileSource(pipeline, *this);
     else if (source_ == "dc1394src")
         return new VideoDc1394Source(pipeline, *this);
+    else if (source_ == "decklinksrc")
+        return new DecklinkSource(pipeline, *this);
     else
         THROW_ERROR(source_ << " is an invalid videosource!");
 
@@ -97,6 +102,20 @@ unsigned VideoSourceConfig::captureHeight() const
     return captureHeight_;
 }
 
+int VideoSourceConfig::decklinkFormat() const
+{
+    return decklinkFormat_;
+}
+
+int VideoSourceConfig::decklinkConnection() const
+{
+    return decklinkConnection_;
+}
+
+int VideoSourceConfig::decklinkSubdevice() const
+{
+    return decklinkSubdevice_;
+}
 
 std::string VideoSourceConfig::pictureAspectRatio() const
 {
