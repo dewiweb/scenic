@@ -54,6 +54,8 @@ class VideoSourceConfig
         bool hasDeviceName() const { return !deviceName_.empty(); }
         bool hasCameraNumber() const { return cameraNumber_ != -1; }
 	bool hasDecklinkFormat() const {return decklinkFormat_ != -1;}
+	bool hasDecklinkConnection() const {return decklinkConnection_ != -1;}
+	bool hasDecklinkSubdevice() const {return decklinkSubdevice_ != -1;}
         int cameraNumber() const { return cameraNumber_; }
         unsigned long long GUID() const { return GUID_; }
         bool hasGUID() const { return GUID_ != 0; }
@@ -65,6 +67,8 @@ class VideoSourceConfig
         unsigned captureWidth() const;
         unsigned captureHeight() const;
 	int decklinkFormat() const;
+	int decklinkConnection() const;
+	int decklinkSubdevice() const;
         std::string pictureAspectRatio() const;
         bool forceGrayscale() const;
         std::string pixelAspectRatio() const;
@@ -87,6 +91,8 @@ class VideoSourceConfig
         const int captureHeight_;
         const bool grayscale_;
 	const int decklinkFormat_;
+	const int decklinkConnection_;
+	const int decklinkSubdevice_;
         const std::string pictureAspectRatio_;
 };
 

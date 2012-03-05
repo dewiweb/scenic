@@ -306,7 +306,17 @@ DecklinkSource::DecklinkSource(const Pipeline &pipeline, const VideoSourceConfig
     if (config_.hasDecklinkFormat())
         g_object_set(G_OBJECT(source_), "mode", config_.decklinkFormat(), NULL);
     else
-        LOG_DEBUG("No valid format for decklink video capture");
+        LOG_DEBUG("No format specified for decklink video capture");
+
+    if (config_.hasDecklinkConnection())
+        g_object_set(G_OBJECT(source_), "connection", config_.decklinkConnection(), NULL);
+    else
+        LOG_DEBUG("No connection specified for decklink video capture");
+
+    if (config_.hasDecklinkSubdevice())
+        g_object_set(G_OBJECT(source_), "subdevice", config_.decklinkSubdevice(), NULL);
+    else
+        LOG_DEBUG("No subdevice specified for decklink video capture");
 
     // GstElement *videorate = pipeline.makeElement("videorate", NULL);
     

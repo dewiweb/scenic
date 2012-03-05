@@ -55,9 +55,10 @@ LocalVideo::LocalVideo(Pipeline &pipeline,
     else if (sourceConfig.sourceString() == "decklinksrc")
     {
         GstElement *colourspace = pipeline.makeElement("ffmpegcolorspace", NULL);
-	GstElement *queue = pipeline.makeElement("queue", NULL);
+	//GstElement *queue = pipeline.makeElement("queue", NULL);
         gstlinkable::link(*source_, colourspace);
         gstlinkable::link(colourspace, *videoscale_);
+	g_object_set (sink_->sinkElement(),"sync",false,NULL);
     }
     else
     {

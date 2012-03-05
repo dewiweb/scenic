@@ -102,7 +102,9 @@ po::options_description ProgramOptions::createDefaultOptions()
         ("port-range", po::value<string>(), "client port range that can be used to receive RTP and RTCP data (rtsp-client only) (e.g. 3000-3005)")
         ("disable-video", po::bool_switch(), "run without video")
         ("disable-audio", po::bool_switch(), "run without audio")
-        ("decklink-format", po::value<int>()->default_value(-1), "Decklink format")
+        ("decklink-format", po::value<int>()->default_value(0), "Decklink format (default NTSC)")
+        ("decklink-connection", po::value<int>()->default_value(0), "Decklink input format (default SDI)")
+        ("decklink-subdevice", po::value<int>()->default_value(0), "Decklink subdevice (default 0)")
         ;
 
     return desc;
