@@ -1,0 +1,15 @@
+HD video streaming with deckling SDI:
+------------------------------------
+1) install decklink driver + MediaExpress
+2) check gstreamer decklinksrc element is installed, version >= 0.10.23 with "gst-inspect decklinksrc". Most recent version can be obtained using the "gstreamer developers" ppa:
+https://launchpad.net/~gstreamer-developers/+archive/ppa
+3) -optional- check that camera is working with MediaExpress, and find the appropriate mode from MediaExpress preferences
+4) determine the "mode" number with "gst-inspect decklinksrc"
+5) check that gstreamer can display your camera feed:
+gst-launch decklinksrc mode=<number you have found> ! xvimagesink sync=false   
+
+6) run milhouse server:
+./milhouse -s -i 127.0.0.1 -p 5010 -u decklinksrc --decklink-format <number you have found> --disable-audio --width 1920 --height 1080 -v h264 -x 20000000
+
+7) run milhouse receiver:
+/milhouse -r -i 127.0.0.1 -p 5010 --disable-audio --width 1920 --height 1080 -v h264
