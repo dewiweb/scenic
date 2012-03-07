@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "shared-video.h"
+#include "shmdata.h"
 
 
 GstElement *pipeline;
@@ -100,7 +100,7 @@ leave(int sig) {
 
 // ---- data ready ----------------------------
 void
-on_first_video_data (ScenicSharedVideo::Reader *context, void *user_data)
+on_first_video_data (shmdata::Reader *context, void *user_data)
 {
   GstElement *gstpay;
   GstElement *rtpbin, *rtpsink, *rtcpsink, *rtcpsrc;
@@ -220,8 +220,8 @@ main (int argc, char *argv[])
   pipeline = gst_pipeline_new (NULL);
   g_assert (pipeline);
 
-  ScenicSharedVideo::Reader *reader;
-  reader = new ScenicSharedVideo::Reader (socketName, &on_first_video_data,pipeline);
+  shmdata::Reader *reader;
+  reader = new shmdata::Reader (socketName, &on_first_video_data,pipeline);
 
   /* we need to run a GLib main loop to get the messages */
   loop = g_main_loop_new (NULL, FALSE);

@@ -15,7 +15,7 @@
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
 #include <gst/app/gstappbuffer.h>
-#include "shared-video.h"
+#include "shmdata.h"
 
 
 #ifdef WIN32
@@ -31,7 +31,7 @@ struct _App
     GstElement *src;
     GstElement *id;
     gboolean on;
-    ScenicSharedVideo::Writer *writer;
+    shmdata::Writer *writer;
 };
 
 App s_app;
@@ -80,7 +80,7 @@ main (int argc, char** argv)
     g_assert (app->id);
     gst_bin_add (GST_BIN (app->pipe), app->id);
 
-    app->writer = new ScenicSharedVideo::Writer (app->pipe,app->id,socketName);
+    app->writer = new shmdata::Writer (app->pipe,app->id,socketName);
     gst_element_link (app->src, app->id);
 
     app->on = true;

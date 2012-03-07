@@ -1,14 +1,14 @@
 #include <gst/gst.h>
 #include <signal.h>
 #include <string>
-#include "shared-video.h"
+#include "shmdata.h"
 
 GstElement *pipeline;
 GstElement *shmDisplay;
 GstElement *funnel;
 
 std::string socketName;
-ScenicSharedVideo::Reader *reader;
+shmdata::Reader *reader;
 
 static gboolean
 bus_call (GstBus     *bus,
@@ -59,7 +59,7 @@ leave(int sig) {
 
 
 void
-on_first_video_data (ScenicSharedVideo::Reader *context, void *user_data)
+on_first_video_data (shmdata::Reader *context, void *user_data)
 {
     g_print ("creating element to display the shared video \n");
     shmDisplay   = gst_element_factory_make ("xvimagesink", NULL);
@@ -86,7 +86,7 @@ static gboolean
 add_shared_video_reader()
 {
     g_print ("add shared video reader");
-    reader = new ScenicSharedVideo::Reader (socketName, &on_first_video_data,NULL);
+    reader = new shmdata::Reader (socketName, &on_first_video_data,NULL);
     return FALSE;
 }
 
@@ -131,7 +131,7 @@ main (int   argc,
     gst_element_link (localVideoSource, localDisplay);
 
 
-    // new ScenicSharedVideo::Reader (socketName,&on_first_video_data);
+    // new shmdata::Reader (socketName,&on_first_video_data);
     g_timeout_add (1000, (GSourceFunc) add_shared_video_reader, NULL);
 
     gst_element_set_state (pipeline, GST_STATE_PLAYING);

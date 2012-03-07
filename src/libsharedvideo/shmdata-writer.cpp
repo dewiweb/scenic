@@ -1,6 +1,6 @@
-#include "shared-video.h"
+#include "shmdata.h"
 
-namespace ScenicSharedVideo 
+namespace shmdata 
 { 
     Writer::Writer ()
     {}
@@ -189,4 +189,4 @@ namespace ScenicSharedVideo
 	gst_object_unref (padToBlock);
     } 
 
-} //namespace ScenicSharedVideo 
+} //namespace shmdata 

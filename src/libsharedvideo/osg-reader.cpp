@@ -33,7 +33,7 @@
 #include <osgViewer/Viewer>
 
 #include <gst/gst.h>
-#include "shared-video.h"
+#include "shmdata.h"
 #include <gst/app/gstappsink.h>
 
 // #include <string.h> //memcpy
@@ -52,7 +52,7 @@ osg::Node* createFilterWall(osg::BoundingBox& bb,osg::Texture2D* texture)
     osg::Vec3 bottom_right(bb.xMin(),bb.yMax(),bb.zMin());
     osg::Vec3 top_right(bb.xMin(),bb.yMax(),bb.zMax());
     osg::Vec3 center(bb.xMin(),(bb.yMin()+bb.yMax())*0.5f,(bb.zMin()+bb.zMax())*0.5f);    
-    float height = bb.zMax()-bb.zMin();
+    //float height = bb.zMax()-bb.zMin();
     
     // create the geometry for the wall.
     osg::Geometry* geom = new osg::Geometry;
@@ -113,42 +113,6 @@ osg::Node* createModel(osg::Texture2D* texture)
 }
 
 
-static gboolean
-bus_call (GstBus     *bus,
-          GstMessage *msg,
-          gpointer    data)
-{
-    GMainLoop *loop = (GMainLoop *) data;
-
-    switch (GST_MESSAGE_TYPE (msg)) {
-
-    case GST_MESSAGE_EOS:
-	g_print ("End of stream\n");
-	//g_main_loop_quit (loop);
-	break;
-
-    case GST_MESSAGE_ERROR: {
-	gchar  *debug;
-	GError *error;
-
-	gst_message_parse_error (msg, &error, &debug);
-	g_free (debug);
-
-	g_printerr ("Error: %s\n", error->message);
-	g_error_free (error);
-
-	g_print ("Now nulling: \n");
-	//gst_element_set_state (pipeline, GST_STATE_NULL);
-	//g_main_loop_quit (loop);
-	break;
-    }
-    default:
-	break;
-    }
-
-    return TRUE;
-}
-
 /* called when the appsink notifies us that there is a new buffer ready for
  * processing */
 static void
@@ -188,7 +152,7 @@ on_new_buffer_from_source (GstElement * elt, gpointer user_data)
 
 
 void
-on_first_video_data (ScenicSharedVideo::Reader *context, void *user_data)
+on_first_video_data (shmdata::Reader *context, void *user_data)
 {
 
     osg::Texture2D* texture = (osg::Texture2D*) user_data;
@@ -220,7 +184,7 @@ on_first_video_data (ScenicSharedVideo::Reader *context, void *user_data)
     gst_element_set_state (funnel, GST_STATE_PLAYING);
     gst_element_set_state (videoConv, GST_STATE_PLAYING);
     gst_bin_add_many (GST_BIN (pipeline), funnel, videoConv, shmDisplay, NULL);
-    gst_element_link_many (funnel, videoConv, shmDisplay);
+    gst_element_link_many (funnel, videoConv, shmDisplay,NULL);
     
     //now tells the shared video reader where to write the data
     context->setSink (pipeline, funnel);
@@ -256,7 +220,7 @@ sharedVideoRead (gpointer user_data)
     //  gst_bin_add_many (GST_BIN (pipeline), localVideoSource, localDisplay, NULL);
     //   gst_element_link (localVideoSource, localDisplay);
     
-    ScenicSharedVideo::Reader *reader = new ScenicSharedVideo::Reader ("/tmp/rt", &on_first_video_data,texture);
+    /*shmdata::Reader *reader =*/ new shmdata::Reader ("/tmp/rt", &on_first_video_data,texture);
     
 //    gst_element_set_state (pipeline, GST_STATE_PLAYING);
     
@@ -278,7 +242,7 @@ int main(int , char **)
     viewer.setSceneData( createModel(texture) );
 
     g_thread_init (NULL);
-    GThread *sharedVideoThread = g_thread_create ((GThreadFunc) sharedVideoRead, texture, FALSE, NULL);
+    /*GThread *sharedVideoThread =*/ g_thread_create ((GThreadFunc) sharedVideoRead, texture, FALSE, NULL);
     
     return viewer.run();
 }

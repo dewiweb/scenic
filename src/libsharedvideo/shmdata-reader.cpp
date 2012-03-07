@@ -1,6 +1,6 @@
-#include "shared-video.h"
+#include "shmdata.h"
 
-namespace ScenicSharedVideo 
+namespace shmdata 
 { 
     Reader::Reader ()
     {}
@@ -166,4 +166,4 @@ namespace ScenicSharedVideo
 	g_free (filename);
     }
 
-} //end namespace  ScenicSharedVideo
+} //end namespace  shmdata

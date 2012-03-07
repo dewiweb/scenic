@@ -12,7 +12,7 @@
 #include <gst/app/gstappsrc.h>
 #include <gst/app/gstappbuffer.h>
 #include <gst/app/gstappsink.h>
-#include "shared-video.h"
+#include "shmdata.h"
 
 #ifdef WIN32
 # define sleep(x) Sleep((x)*1000)
@@ -67,7 +67,7 @@ on_new_buffer_from_source (GstElement * elt, gpointer user_data)
 
 
 void
-on_first_video_data (ScenicSharedVideo::Reader *context, void *user_data)
+on_first_video_data (shmdata::Reader *context, void *user_data)
 {
     g_print ("on first data received \n");
     s_app.funnel = gst_element_factory_make ("funnel", NULL);
@@ -126,8 +126,8 @@ main (int argc, char** argv)
     gst_element_set_state (s_app.pipe, GST_STATE_PLAYING);
 
     
-    ScenicSharedVideo::Reader *reader;
-    reader = new ScenicSharedVideo::Reader (socketName, &on_first_video_data,NULL);
+    shmdata::Reader *reader;
+    reader = new shmdata::Reader (socketName, &on_first_video_data,NULL);
     
 
     g_main_loop_run (loop);

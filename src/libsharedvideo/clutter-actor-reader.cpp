@@ -32,7 +32,7 @@
 #endif
 #include <gst/gst.h>
 
-#include "shared-video.h"
+#include "shmdata.h"
 
 /* This example shows how to use textures that come from a
  * gst-plugins-gl pipeline, into the clutter framework
@@ -75,7 +75,7 @@ ClutterTimeline *timeline = NULL;
 
 //sharedvideo
 std::string socketName;
-ScenicSharedVideo::Reader *reader;
+shmdata::Reader *reader;
 
 /* rotation */
 void
@@ -197,7 +197,7 @@ end_stream_cb (GstBus * bus, GstMessage * msg, gpointer data)
 }
 
 void
-on_first_video_data (ScenicSharedVideo::Reader *context, void *user_data)
+on_first_video_data (shmdata::Reader *context, void *user_data)
 {
 
     /* texture actor */
@@ -364,7 +364,7 @@ main (int argc, char *argv[])
 
  
     //shared video creation
-    reader = new ScenicSharedVideo::Reader (socketName, &on_first_video_data,NULL);
+    reader = new shmdata::Reader (socketName, &on_first_video_data,NULL);
 
 
 

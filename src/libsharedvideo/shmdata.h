@@ -1,14 +1,14 @@
-#ifndef _SCENIC_SHARED_VIDEO_H_
-#define _SCENIC_SHARED_VIDEO_H_
+#ifndef _SHM_DATA_H_
+#define _SHM_DATA_H_
 #include <string>
 #include <gst/gst.h>
 #include <gio/gio.h>
 
-namespace ScenicSharedVideo
+namespace shmdata
 {
    class Writer {
     public:
-       Writer (GstElement *pipeline,GstElement *videoElement,const std::string socketPath);
+       Writer (GstElement *pipeline,GstElement *Element,const std::string socketPath);
        Writer (GstElement *pipeline,GstPad *srcPad,const std::string socketPath);
        Writer ();
 	~Writer ();
@@ -62,6 +62,6 @@ namespace ScenicSharedVideo
        static void file_system_monitor_change (GFileMonitor *monitor, GFile *file, GFile *other_file, GFileMonitorEvent type, gpointer user_data);
    };
 
-}      //end namespace  ScenicSharedVideo
-#endif //_SCENIC_SHARED_VIDEO_H_
+}      //end namespace  shmdata
+#endif //_SHM_DATA_H_
 

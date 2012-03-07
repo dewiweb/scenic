@@ -22,7 +22,7 @@
 
 #include <gst/gst.h>
 #include <gst/app/gstappsink.h>
-#include "shared-video.h"
+#include "shmdata.h"
 
 
 
@@ -58,7 +58,7 @@ typedef struct _App App;
 struct _App
 {
     GstElement *pipeline;
-    ScenicSharedVideo::Writer *writer;
+    shmdata::Writer *writer;
     std::string socketName;
 };
 
@@ -143,7 +143,7 @@ App app;
     g_assert (lres == GST_PAD_LINK_OK);
     gst_object_unref (sinkpad);
 
-    app->writer = new ScenicSharedVideo::Writer (app->pipeline,gstdepay,app->socketName);
+    app->writer = new shmdata::Writer (app->pipeline,gstdepay,app->socketName);
  }
 
 

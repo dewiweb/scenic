@@ -1,7 +1,7 @@
 #include <gst/gst.h>
 #include <signal.h>
 #include <string>
-#include "shared-video.h"
+#include "shmdata.h"
 
 
 GstElement *pipeline;
@@ -13,7 +13,7 @@ GstElement *timeoverlay;
 GstElement *camsource;
 
 std::string socketName;
-ScenicSharedVideo::Writer *writer;
+shmdata::Writer *writer;
 
 //clean up pipeline when ctrl-c
 void
@@ -31,7 +31,7 @@ leave(int sig) {
 static gboolean  
 add_shared_video_writer()
 {
-    writer = new ScenicSharedVideo::Writer (pipeline,tee,socketName);
+    writer = new shmdata::Writer (pipeline,tee,socketName);
     g_print ("Now writing to the shared memory\n");
     return FALSE;
 }
