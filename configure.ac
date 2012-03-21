@@ -215,7 +215,7 @@ CXXFLAGS=$CFLAGS
 
 if test "x${enable_debug}" = "xyes" ; then
     AC_DEFINE(CONFIG_DEBUG_LOCAL,[],[Debug define from configure])
-    CFLAGS="-O2 -Wextra -pedantic -Wfatal-errors -Werror -Wall -Wno-long-long -Wno-variadic-macros -Wshadow"
+    CFLAGS="-O2 -Wextra -Wfatal-errors -Werror -Wall -Wno-long-long -Wno-variadic-macros -Wshadow"
     CXXFLAGS="-Weffc++ "
     CXXFLAGS+=$CFLAGS
 fi

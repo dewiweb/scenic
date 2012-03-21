@@ -81,7 +81,7 @@ libgst_la_CPPFLAGS = \
     $(LIBAVC1394_CFLAGS) \
     -DPIXMAPS_DIR=\"$(PIXMAPS_DIR)\" \
     -I$(top_srcdir)/src \
-    -I$(top_srcdir)/src/include
+    -I$(top_srcdir)/src/include 
 
 libgst_la_LIBADD = \
     $(BOOST_FILESYSTEM_LIB) \
