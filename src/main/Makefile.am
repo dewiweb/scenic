@@ -3,6 +3,7 @@ SUBDIRS = test
 bin_PROGRAMS = milhouse
 
 milhouse_SOURCES = \
+    $(top_srcdir)/src/include/concurrent_queue.h \
     main.cpp \
     milhouse.cpp \
     milhouse_logger.cpp \
@@ -13,7 +14,6 @@ EXTRA_DIST = \
     milhouse.h \
     program_options.h
 
-#$(top_srcdir)/src/include/concurrent_queue.h
 
 #FIXME GLIB_CFLAGS only here because pipeline.h has include glib/gtypes.h, also GDK flags because of audioSender.h->audioLevel.h
 
