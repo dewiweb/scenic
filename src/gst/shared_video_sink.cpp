@@ -23,23 +23,24 @@
 #include "shared_video_sink.h"
 #include "gst_linkable.h"
 #include "pipeline.h"
+#include <gst/gst.h>
 
 SharedVideoSink::SharedVideoSink(const Pipeline &pipeline, const std::string &sp) :
     VideoSink(),
     socketPath(sp)
 {
-    serializer = pipeline.makeElement("gdppay", NULL);
-    sink_ = pipeline.makeElement("shmsink", NULL);
-
-    g_object_set(G_OBJECT(sink_), "socket-path", socketPath.c_str(), NULL);
-    g_object_set(G_OBJECT(sink_), "shm-size", 94967295, NULL);
-    g_object_set(G_OBJECT(sink_), "sync", FALSE, NULL);
-
-    gstlinkable::link(serializer, sink_);
+    tee_ = pipeline.makeElement("tee", NULL);
+    // fakesink in order to continue consuming buffers when no reader is present.
+    // otherwise buffers accumulate in "tee" 
+    GstElement *queue = pipeline.makeElement("queue",NULL);
+    GstElement *fakesink = pipeline.makeElement("fakesink",NULL);
+    writer_ = shmdata_base_writer_init (sp.c_str(), pipeline.getPipeline(), tee_);
+    gstlinkable::link(tee_, queue);
+    gstlinkable::link(queue, fakesink);
 }
 
 SharedVideoSink::~SharedVideoSink()
 {
-    // pass
+  shmdata_base_writer_close (writer_);
 }
 

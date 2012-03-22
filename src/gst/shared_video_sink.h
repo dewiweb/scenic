@@ -23,10 +23,11 @@
 #define _SHARED_VIDEO_SINK_H_
 
 #include "video_sink.h"
+#include <shmdata/base-writer.h>
 
 class _GtkWidget;
 class _GstElement;
-class SharedVideoBuffer;
+//class SharedVideoBuffer;
 
 class SharedVideoSink : public VideoSink
 {
@@ -36,10 +37,11 @@ class SharedVideoSink : public VideoSink
 
     private:
         const std::string socketPath;
-        _GstElement *serializer;
+        _GstElement *tee_;
+	shmdata_base_writer_t *writer_;
         virtual _GstElement *sinkElement()
         {
-            return serializer;
+            return tee_;
         }
 };
 

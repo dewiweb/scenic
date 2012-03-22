@@ -44,6 +44,7 @@ class Pipeline : private boost::noncopyable
         bool isAlive() { return pipeline_ == 0; }
         _GstElement *makeElement(const char *factoryName, const char *elementName) const;
         _GstElement *findElementByName(const char *elementName) const;
+	_GstElement *getPipeline() const { return pipeline_; }
         void subscribe(BusMsgHandler *obj);
         void unsubscribe(BusMsgHandler *obj);
 
