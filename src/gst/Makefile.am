@@ -79,6 +79,7 @@ libgst_la_CPPFLAGS = \
     $(GTK_CFLAGS) \
     $(JACK_CFLAGS) \
     $(LIBAVC1394_CFLAGS) \
+    $(SHMDATA_CFLAGS) \
     -DPIXMAPS_DIR=\"$(PIXMAPS_DIR)\" \
     -I$(top_srcdir)/src \
     -I$(top_srcdir)/src/include 
@@ -96,6 +97,7 @@ libgst_la_LIBADD = \
     $(LIBAVC1394_LDFLAGS) \
     $(LIBDC1394_LIBS) \
     $(LIBRAW1394_LIBS) \
+    $(SHMDATA_LIBS) \
     $(top_builddir)/src/caps/libcaps.la \
     $(top_builddir)/src/devices/libdevices.la
 

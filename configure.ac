@@ -62,6 +62,12 @@ if test "x${have_gstreamer}" = "xfalse" ; then
     AC_MSG_ERROR([Missing libgstreamer0.10-dev, gstreamer not found.])
 fi
 
+#Trying to set GST_CFLAGS GST_LIBS using pkg-config
+PKG_CHECK_MODULES(SHMDATA, shmdata-0.1, have_shmdata=true, have_shmadata=false)
+if test "x${have_shmdata}" = "xfalse" ; then
+    AC_MSG_ERROR([Missing libshmdata-0.1])
+fi
+
 #Trying to set GSTAUDIO using pkg-config
 PKG_CHECK_MODULES(GSTAUDIO, gstreamer-audio-0.10, have_gstreamer_audio=true, have_gstreamer_audio=false)
 if test "x${have_gstreamer_audio}" = "xfalse" ; then
