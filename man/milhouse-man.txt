@@ -10,7 +10,7 @@ Milhouse also supports DV cameras and DC cameras, which use IEEE 1394 (Firewire)
 
 For audio, Milhouse provides volume unit meters, so that operators can monitor audio levels.
 
-There is also a shared video library that is shipped with Milhouse. A developer can then stream a video and render it in another process, for example.
+Milhouse uses the libshmdata library for streaming video to applications. When milhouse is running as a sender, local preview of the video sent is accessible with the libshmdata socket name "/tmp/scenic_local_preview_<host>_<port>", where <host> is the remote host and <port> the port number Milhouse is sending to.
 
 [EXAMPLES]
 Here is how to start a receiver and a sender to stream audio and video.

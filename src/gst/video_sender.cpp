@@ -76,9 +76,11 @@ void VideoSender::createCodec(Pipeline &pipeline)
 	  std::string port;
 	  strm << remoteConfig_->port();
 	  strm >> port;
-	  std::string localShmName("/tmp/local_preview_");
+	  std::string localShmName("/tmp/scenic_local_preview_");
+	  localShmName.append(remoteConfig_->remoteHost());
+	  localShmName.append("_");
 	  localShmName.append(port);
-	  localshvid_.reset(new SharedVideoSink(pipeline, source_->getWidth() , source_->getHeight(),localShmName));
+	  localshvid_.reset(new SharedVideoSink(pipeline, localShmName));
 	  gstlinkable::link(*source_,tee_); 
 	  gstlinkable::link(tee_,  *encoder_);
 	  gstlinkable::link(tee_, lpqueue_);  

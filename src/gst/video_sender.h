@@ -34,6 +34,8 @@
 #include "noncopyable.h"
 
 #include <tr1/memory>
+#include <gst/gst.h>
+#include "shared_video_sink.h"
 
 class VideoSourceConfig;
 class VideoSource;
@@ -59,6 +61,9 @@ class VideoSender
         std::tr1::shared_ptr<VideoSource> source_;
         std::tr1::shared_ptr<VideoEncoder> encoder_;
         std::tr1::shared_ptr<Pay> payloader_;
+	GstElement *tee_;
+	GstElement *lpqueue_;
+	std::tr1::shared_ptr<VideoSink> localshvid_;
 };
 
 #endif
